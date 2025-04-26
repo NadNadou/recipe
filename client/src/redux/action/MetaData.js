@@ -7,6 +7,7 @@ import {
   CREATE_INGREDIENT_REQUEST, CREATE_INGREDIENT_SUCCESS, CREATE_INGREDIENT_FAIL,
   UPDATE_INGREDIENT_REQUEST, UPDATE_INGREDIENT_SUCCESS, UPDATE_INGREDIENT_FAIL,
   DELETE_INGREDIENT_REQUEST, DELETE_INGREDIENT_SUCCESS, DELETE_INGREDIENT_FAIL,
+  GET_INGREDIENT_DETAIL_REQUEST,GET_INGREDIENT_DETAIL_SUCCESS,GET_INGREDIENT_DETAIL_FAIL,
 
   GET_TAGS_REQUEST, GET_TAGS_SUCCESS, GET_TAGS_FAIL,
   CREATE_TAG_REQUEST, CREATE_TAG_SUCCESS, CREATE_TAG_FAIL,
@@ -59,6 +60,16 @@ export const deleteIngredient = (id) => async dispatch => {
     dispatch({ type: DELETE_INGREDIENT_FAIL, payload: error.message });
   }
 };
+
+export const getIngredientDetail = (id) => async dispatch => {
+    try {
+      dispatch({ type: GET_INGREDIENT_DETAIL_REQUEST });
+      const response = await apiIngredients.getIngredient(id);
+      dispatch({ type: GET_INGREDIENT_DETAIL_SUCCESS, payload: response.data });
+    } catch (error) {
+      dispatch({ type: GET_INGREDIENT_DETAIL_FAIL, payload: error.message });
+    }
+  };
 
 // TAGS
 export const getAllTags = () => async dispatch => {

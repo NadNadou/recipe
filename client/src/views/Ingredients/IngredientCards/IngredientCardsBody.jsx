@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SimpleBar from 'simplebar-react';
 import { MoreVertical,Clock,AlignLeft} from 'react-feather';
 import { Button, Card, Col, Dropdown, Form, Row } from 'react-bootstrap';
@@ -7,30 +7,36 @@ import classNames from 'classnames';
 import IngredientDetails from './IngredientDetails';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
-import UpdateRecipeModal from "../UpdateRecipeModal"
-
-import { getAllRecipes, getRecipeDetail,deleteRecipe,duplicateRecipe} from '../../../redux/action/Recipes';
+import UpdateIngredient from './../UpdateIngredient'
 
 //Images
 import avatar2 from '../../../assets/img/avatar2.jpg';
+import { deleteIngredient, getAllIngredients,getIngredientDetail} from '../../../redux/action/MetaData';
+import { getLabelForNutrient ,getColorClassForNutrient} from '../../../utils/nutritionUtils';
 
 const IngredientCardsBody = () => {
     const reduxDispatch = useDispatch()
-    const { recipes, updateRecipe,recipeDetail} = useSelector(state => state.recipeReducer);
+
+    const {ingredients,ingredientDetail} = useSelector(state =>state.metadataReducer)
+
+    useEffect(() => {
+        reduxDispatch(getAllIngredients());
+    }, []);
+// }, [updateRecipe]);
 
     const initial = false;
     const [multipleSelection, setMultipleSelection] = useState(false);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedRecipeId, setSelectedRecipeId] = useState(null);
+    const [selectedIngredientId, setSelectedIngredientId] = useState(null);
 
     const handleDeleteClick = (id) => {
-        setSelectedRecipeId(id);
+        setSelectedIngredientId(id);
         setShowDeleteModal(true);
       };
 
     const handleConfirmDelete = () => {
-        reduxDispatch(deleteRecipe(selectedRecipeId));
+        reduxDispatch(deleteIngredient(selectedIngredientId));
         setShowDeleteModal(false);
     };
       
@@ -39,30 +45,19 @@ const IngredientCardsBody = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
 
-
-
-    useEffect(() => {
-        reduxDispatch(getAllRecipes());
-    }, [updateRecipe]);
-
-    useEffect(() => {
-        const anyChecked = Object.values(checkState).some(Boolean);
-        setMultipleSelection(anyChecked);
-      }, [checkState]);
-
-
     const handleShowDetails = (id) => {
-        reduxDispatch(getRecipeDetail(id)); // récupère les détails
+        reduxDispatch(getIngredientDetail(id)); // récupère les détails
         setShowDetails(true); // affiche le modal
     };
 
     const handleShowUpdate = (id) => {
-        setSelectedRecipeId(id);
+        reduxDispatch(getIngredientDetail(id));
         setShowUpdate(true);
     };
 
     const handleDuplicate = (id) =>{
-        reduxDispatch(duplicateRecipe(id))
+        // reduxDispatch(duplicateRecipe(id))
+        console.log(id)
     }
     
     return (
@@ -163,67 +158,81 @@ const IngredientCardsBody = () => {
                         </Row>
                         <Row className="row-cols-xxl-5 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-1 mb-5 gx-3">
 
-                            {/* {console.log(recipes && recipes.recipes.map(a=>a._id))} */}
-                            {recipes && recipes.map((recipe, index) => (                                
-                                <Col key={recipe._id || index}>
+                        {ingredients && ingredients.map((ingredient, index) => (                                
+                            <Col key={ingredient._id || index}>
                                 <Card className="card-border contact-card">
-                                    <Card.Body className="text-center">
+                                <Card.Body className="text-center">
                                     <div className="card-action-wrap">
                                         <Dropdown>
-                                            <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret ">
-                                                <span className="btn-icon-wrap">
-                                                    <span className="feather-icon">
-                                                        <MoreVertical />
-                                                    </span>
-                                                </span>
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu align="end">
-                                                <Dropdown.Item onClick={() => handleShowUpdate(recipe._id)}>
-                                                    <i className="icon wb-reply" aria-hidden="true" />Update
-                                                </Dropdown.Item>
-
-                                                <Dropdown.Item onClick={() => handleDeleteClick(recipe._id)}>
-                                                    <i className="icon wb-trash" aria-hidden="true" />Supprimer
-                                                </Dropdown.Item>
-
-                                                <Dropdown.Item onClick={() => handleDuplicate(recipe._id)}>
-                                                    <i className="icon wb-trash" aria-hidden="true" />Duplicate
-                                                </Dropdown.Item>
-
-
-                                            </Dropdown.Menu>
+                                        <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret">
+                                            <span className="btn-icon-wrap">
+                                            <span className="feather-icon">
+                                                <MoreVertical />
+                                            </span>
+                                            </span>
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu align="end">
+                                            <Dropdown.Item onClick={() => handleShowUpdate(ingredient._id)}>
+                                            <i className="icon wb-reply" aria-hidden="true" />Update
+                                            </Dropdown.Item>
+                                            <Dropdown.Item onClick={() => handleDeleteClick(ingredient._id)}>
+                                            <i className="icon wb-trash" aria-hidden="true" />Supprimer
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
                                         </Dropdown>
                                     </div>
-                                    <div className="avatar avatar-xl avatar-rounded">
-                                        <img src={recipe.image || avatar2} alt={recipe.title} className="avatar-img" />
-                                    </div>
-                                    <div className="user-name">{recipe.title}</div>
-                                    <div className="user-email">{recipe.description || 'Pas de description'}</div>
-                                    <div className="user-desg">
-                                        <span className="badge badge-primary badge-indicator badge-indicator-lg me-2" />
-                                        {recipe.tagIds?.map(tag => tag.label).join(', ')}
+
+                                    {/* Nom */}
+                                    <div className="user-name">{ingredient.name}</div>
+
+                                    {/* Propriétés nutritionnelles principales */}
+                                    <div className="user-desg d-flex flex-wrap justify-content-center gap-1 mt-2">
+                                        {ingredient.nutritionalProperties?.slice(0, 2).map((prop, idx) => (
+                                        <span key={idx} className="badge bg-primary">{prop}</span>
+                                        ))}
+                                        {ingredient.nutritionalProperties?.length > 2 && (
+                                        <span className="badge bg-secondary">+{ingredient.nutritionalProperties.length - 2}</span>
+                                        )}
                                     </div>
 
 
-                                    </Card.Body>
-                                      <Card.Footer className="text-muted position-relative">
-                                        <div className="d-flex align-items-center">
-                                            <span className="feather-icon me-2"><Clock /></span>
-                                            <span className="fs-7 lh-1">{ (recipe.prepTime || 0) + (recipe.cookTime || 0) } min</span>
-                                        </div>
-                                        <div className="v-separator-full m-0" />
-                                        <div
-                                            className="d-flex align-items-center"
-                                            onClick={() => handleShowDetails(recipe._id)}
-                                        >
-                                            <span className="feather-icon me-2"><AlignLeft /></span>
-                                            <span className="fs-7 lh-1">Details</span>
-                                        </div>
-                                    </Card.Footer>
+                                    {/* Détail rapide des valeurs */}
+                                    <div className="mt-3 d-flex flex-column align-items-left gap-2">
+                                        {ingredient.nutritionPer100g && ['calories', 'proteins', 'carbs', 'fats'].map((macro, idx) => (
+                                            <div key={idx} className="d-flex align-items-center gap-2">
+                                            <div
+                                                className={`badge ${getColorClassForNutrient(macro)} text-white rounded-circle`}
+                                                style={{ width: 20, height: 20, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >
+                                                {getLabelForNutrient(macro)}
+                                            </div>
+                                            <small className="text-dark">
+                                                {macro === 'calories'
+                                                ? `${ingredient.nutritionPer100g?.[macro]} kcal`
+                                                : `${ingredient.nutritionPer100g?.[macro]} g`
+                                                }
+                                            </small>
+                                            </div>
+                                        ))}
+                                    </div>
+
+
+                                </Card.Body>
+
+                                <Card.Footer className="text-muted position-relative">
+                                    <div
+                                    className="d-flex align-items-center justify-content-center"
+                                    onClick={() => handleShowDetails(ingredient._id)}
+                                    >
+                                    <span className="feather-icon me-2"><AlignLeft /></span>
+                                    <span className="fs-7 lh-1">Details</span>
+                                    </div>
+                                </Card.Footer>
 
                                 </Card>
-                                </Col>
-                            ))}
+                            </Col>
+                        ))}
+
                         </Row>
 
                         <Row>
@@ -243,7 +252,7 @@ const IngredientCardsBody = () => {
                 </SimpleBar>
             </div>
 
-            <IngredientDetails show={showDetails} onHide={() => setShowDetails(!showDetails)} recipe={recipeDetail} />
+            <IngredientDetails show={showDetails} onHide={() => setShowDetails(!showDetails)} ingredient={ingredientDetail} />
 
             <ConfirmDeleteModal
                 show={showDeleteModal}
@@ -252,11 +261,11 @@ const IngredientCardsBody = () => {
             />
 
             {showUpdate && (
-            <UpdateRecipeModal
+            <UpdateIngredient
                 show={showUpdate}
-                recipeId={selectedRecipeId}
-                onClose={() => setShowUpdate(false)}
-                onUpdated={() => reduxDispatch(getAllRecipes())}
+                ingredient={ingredientDetail}
+                close={() => setShowUpdate(false)}
+                onUpdated={() => reduxDispatch(getAllIngredients())}
 
             />
             )}

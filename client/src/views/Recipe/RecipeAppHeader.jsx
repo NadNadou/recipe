@@ -1,14 +1,13 @@
 import React, {useState} from 'react';
 import { Button, Dropdown } from 'react-bootstrap';
 import classNames from 'classnames';
-import { Archive, ChevronDown, ChevronUp, Edit, ExternalLink, Grid, List, MoreVertical, RefreshCw, Server, Settings, Slash, Star, Trash2, User } from 'react-feather';
+import { Archive, ChevronDown, ChevronUp, Grid, List, MoreVertical, RefreshCw, Plus, Star, User } from 'react-feather';
 import { connect } from 'react-redux';
 import { NavLink, useRouteMatch } from 'react-router-dom';
 import { toggleTopNav } from '../../redux/action/Theme';
 import HkTooltip from '../../components/@hk-tooltip/HkTooltip';
 
 import CreateNewRecipe from './CreateNewRecipe';
-import CreateNewIngredient from '../Ingredients/CreateNewIngredient';
 import { useHistory } from 'react-router-dom';
 
 
@@ -17,8 +16,6 @@ const RecipeAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, show })
     const contactListRoute = useRouteMatch("/apps/contacts/contact-list");
 
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showCreateIngredient, setShowCreateIngredient] = useState(false)
-
 
     return (
         <header className="contact-header">
@@ -43,14 +40,14 @@ const RecipeAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, show })
                        
                     </Dropdown.Menu>
                 </Dropdown>
-                <Dropdown className="ms-3">
-                    <Dropdown.Toggle size="sm" variant="outline-secondary" className="flex-shrink-0 d-lg-inline-block d-none">Create New</Dropdown.Toggle>
-                    <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => setShowCreateModal(true)}>Add New Recipe</Dropdown.Item>
-                        <Dropdown.Item onClick={()=> setShowCreateIngredient(true)}>Add New Ingredient</Dropdown.Item>
-                        <Dropdown.Item>Add Tag</Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown>
+
+                <Button variant="light" size="xs" className="btn-icon btn-rounded ms-2" onClick={() => setShowCreateModal(true)} >
+                    <HkTooltip placement="top" title="Add recipe">
+                        <span className="feather-icon">
+                            <Plus />
+                        </span>
+                    </HkTooltip>
+                </Button>
             </div>
             <div className="contact-options-wrap">
                 <Dropdown className="inline-block" >
@@ -126,7 +123,6 @@ const RecipeAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, show })
             <div className={classNames("hk-sidebar-togglable", { "active": show })} onClick={toggleSidebar} />
 
             <CreateNewRecipe show={showCreateModal} close={() => setShowCreateModal(false)} />
-            <CreateNewIngredient show={showCreateIngredient} close={() => setShowCreateIngredient(false)} />
 
         </header>
     )

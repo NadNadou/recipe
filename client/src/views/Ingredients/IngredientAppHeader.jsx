@@ -1,14 +1,13 @@
 import React, {useState} from 'react';
 import { Button, Dropdown } from 'react-bootstrap';
 import classNames from 'classnames';
-import { Archive, ChevronDown, ChevronUp, Edit, ExternalLink, Grid, List, MoreVertical, RefreshCw, Server, Settings, Slash, Star, Trash2, User } from 'react-feather';
+import { Archive, ChevronDown, ChevronUp,Plus, Grid, List, MoreVertical, RefreshCw, Star, User } from 'react-feather';
 import { connect } from 'react-redux';
 import { NavLink, useRouteMatch } from 'react-router-dom';
 import { toggleTopNav } from '../../redux/action/Theme';
 import HkTooltip from '../../components/@hk-tooltip/HkTooltip';
 
-import CreateNewRecipe from './CreateNewRecipe';
-import CreateNewIngredient from '../Ingredients/CreateNewIngredient';
+import CreateNewIngredient from './CreateNewIngredient';
 import { useHistory } from 'react-router-dom';
 
 
@@ -25,14 +24,14 @@ const IngredientAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, sho
             <div className="d-flex align-items-center">
                 <Dropdown>
                     <Dropdown.Toggle as="a" className="contactapp-title link-dark" href="#" >
-                        <h1>Recipes</h1>
+                        <h1>Ingredients</h1>
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
                         <Dropdown.Item>
                             <span className="feather-icon dropdown-icon">
                                 <User />
                             </span>
-                            <span>All recipes</span>
+                            <span>All ingredients</span>
                         </Dropdown.Item>
                         <Dropdown.Item>
                             <span className="feather-icon dropdown-icon">
@@ -43,14 +42,14 @@ const IngredientAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, sho
                        
                     </Dropdown.Menu>
                 </Dropdown>
-                <Dropdown className="ms-3">
-                    <Dropdown.Toggle size="sm" variant="outline-secondary" className="flex-shrink-0 d-lg-inline-block d-none">Create New</Dropdown.Toggle>
-                    <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => setShowCreateModal(true)}>Add New Recipe</Dropdown.Item>
-                        <Dropdown.Item onClick={()=> setShowCreateIngredient(true)}>Add New Ingredient</Dropdown.Item>
-                        <Dropdown.Item>Add Tag</Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown>
+
+                <Button variant="light" size="xs" className="btn-icon btn-rounded ms-2" onClick={() => setShowCreateIngredient(true)} >
+                    <HkTooltip placement="top" title="Add ingredient">
+                        <span className="feather-icon">
+                            <Plus />
+                        </span>
+                    </HkTooltip>
+                </Button>
             </div>
             <div className="contact-options-wrap">
                 <Dropdown className="inline-block" >
@@ -125,7 +124,7 @@ const IngredientAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, sho
             </div>
             <div className={classNames("hk-sidebar-togglable", { "active": show })} onClick={toggleSidebar} />
 
-            <CreateNewRecipe show={showCreateModal} close={() => setShowCreateModal(false)} />
+            <CreateNewIngredient show={showCreateModal} close={() => setShowCreateModal(false)} />
             <CreateNewIngredient show={showCreateIngredient} close={() => setShowCreateIngredient(false)} />
 
         </header>

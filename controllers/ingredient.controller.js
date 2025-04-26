@@ -13,6 +13,8 @@ exports.getAllIngredients = async (req, res) => {
 // GET single ingredient
 exports.getIngredientById = async (req, res) => {
   try {
+
+    console.log("hello")
     const ingredient = await Ingredient.findById(req.params.id);
     if (!ingredient) return res.status(404).json({ message: "Ingrédient introuvable" });
     res.status(200).json(ingredient);
@@ -29,10 +31,8 @@ exports.createIngredient = async (req, res) => {
       defaultUnit,
       units,
       unitConversions,
-      category,
       nutritionPer100g,
       nutritionalProperties,
-      dietaryProperties
     } = req.body;
 
     const newIngredient = new Ingredient({
@@ -40,10 +40,8 @@ exports.createIngredient = async (req, res) => {
       defaultUnit,
       units,
       unitConversions,
-      category,
       nutritionPer100g,
       nutritionalProperties,
-      dietaryProperties
     });
 
     const saved = await newIngredient.save();

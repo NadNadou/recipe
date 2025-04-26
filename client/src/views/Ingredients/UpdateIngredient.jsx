@@ -1,30 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { createIngredient } from '../../redux/action/MetaData';
+import { updateIngredient } from '../../redux/action/MetaData';
 
-const UpdateIngredient = ({ show, close }) => {
+const UpdateIngredient = ({ show, close, ingredient }) => {
   const dispatch = useDispatch();
 
-  const cookingUnits = useSelector(state=> state.metadataReducer.cookingUnits);
+  console.log({ingredient})
+
+  const cookingUnits = useSelector(state => state.metadataReducer.cookingUnits);
   const nutritionalProperties = useSelector(state => state.metadataReducer.nutritionalProperties);
-  const dietaryProperties = useSelector(state => state.metadataReducer.dietaryProperties);
 
   const [ingredientData, setIngredientData] = useState({
     name: '',
     defaultUnit: 'g',
     units: ['g'],
     unitConversions: { g: 1 },
-    category: '',
-    nutritionPer100g: {
-      calories: 0,
-      proteins: 0,
-      carbs: 0,
-      fats: 0
-    },
+    nutritionPer100g: { calories: 0, proteins: 0, carbs: 0, fats: 0 },
     nutritionalProperties: [],
-    dietaryProperties: []
   });
+
+  useEffect(() => {
+    if (ingredient) {
+      setIngredientData({
+        name: ingredient.name || '',
+        defaultUnit: ingredient.defaultUnit || 'g',
+        units: ingredient.units || ['g'],
+        unitConversions: ingredient.unitConversions || { g: 1 },
+        nutritionPer100g: ingredient.nutritionPer100g || { calories: 0, proteins: 0, carbs: 0, fats: 0 },
+        nutritionalProperties: ingredient.nutritionalProperties || [],
+      });
+    }
+  }, [ingredient]);
 
   const handleChange = (field, value) => {
     setIngredientData(prev => ({ ...prev, [field]: value }));
@@ -48,33 +55,24 @@ const UpdateIngredient = ({ show, close }) => {
   };
 
   const handleSubmit = async () => {
-    await dispatch(createIngredient(ingredientData));
+    if (!ingredient || !ingredient._id) return;
+    await dispatch(updateIngredient(ingredient._id, ingredientData));
     close();
-    setIngredientData({
-      name: '',
-      defaultUnit: 'g',
-      units: ['g'],
-      unitConversions: { g: 1 },
-      category: '',
-      nutritionPer100g: { calories: 0, proteins: 0, carbs: 0, fats: 0 },
-      nutritionalProperties: [],
-      dietaryProperties: []
-    });
   };
 
   return (
     <Modal show={show} onHide={close} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Créer un nouvel ingrédient</Modal.Title>
+        <Modal.Title>Modifier l'ingrédient</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
           <Form.Group className="mb-3">
             <Form.Label>Nom</Form.Label>
             <Form.Control
-              value={ingredientData.name}
               onChange={e => handleChange('name', e.target.value)}
-              placeholder="Ex: Farine"
+              defaultValue={ingredient.name}
+              placeholder={ingredientData.name}
             />
           </Form.Group>
 
@@ -84,17 +82,10 @@ const UpdateIngredient = ({ show, close }) => {
               value={ingredientData.defaultUnit}
               onChange={e => handleChange('defaultUnit', e.target.value)}
             >
-              {cookingUnits.map((unit,index)=><option key={index} value={unit.label}>{unit.label}</option>)}
+              {cookingUnits.map((unit, index) => (
+                <option key={index} value={unit.label}>{unit.label}</option>
+              ))}
             </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Catégorie</Form.Label>
-            <Form.Control
-              value={ingredientData.category}
-              onChange={e => handleChange('category', e.target.value)}
-              placeholder="Ex: Légumes, Produits laitiers..."
-            />
           </Form.Group>
 
           <h6>Macronutriments (pour 100g)</h6>
@@ -152,22 +143,11 @@ const UpdateIngredient = ({ show, close }) => {
             />
           ))}
 
-          <h6 className="mt-4">Propriétés diététiques</h6>
-          {dietaryProperties.map((prop, index) => (
-            <Form.Check
-              key={index}
-              type="checkbox"
-              label={prop.label}
-              checked={ingredientData.dietaryProperties.includes(prop.label)}
-              onChange={() => toggleArrayValue('dietaryProperties', prop.label)}
-            />
-          ))}
-
         </Form>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={close}>Annuler</Button>
-        <Button variant="primary" onClick={handleSubmit}>Créer l'ingrédient</Button>
+        <Button variant="primary" onClick={handleSubmit}>Mettre à jour</Button>
       </Modal.Footer>
     </Modal>
   );

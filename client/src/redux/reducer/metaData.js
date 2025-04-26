@@ -12,6 +12,7 @@ import {
     DELETE_INGREDIENT_REQUEST,
     DELETE_INGREDIENT_SUCCESS,
     DELETE_INGREDIENT_FAIL,
+    GET_INGREDIENT_DETAIL_SUCCESS,
   
     // Tags
     GET_TAGS_REQUEST,
@@ -44,6 +45,7 @@ import {
   
   const initialState = {
     ingredients: [],
+    ingredientDetail:null,
     tags: [],
     equipments: [],
     loading: false,
@@ -120,6 +122,13 @@ import {
       case UPDATE_INGREDIENT_REQUEST:
       case DELETE_INGREDIENT_REQUEST:
         return { ...state, loading: true, error: null };
+
+      case GET_INGREDIENT_DETAIL_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          ingredientDetail: action.payload,
+        };
   
       case GET_INGREDIENTS_SUCCESS:
         return { ...state, loading: false, ingredients: action.payload };

@@ -23,10 +23,6 @@ const ingredientSchema = new Schema(
       of: Number,
       default: {}
     },
-    category: {
-      type: String,
-      default: ''
-    },
     nutritionPer100g: {
       calories: { type: Number, default: 0 },
       proteins: { type: Number, default: 0 },
@@ -34,10 +30,6 @@ const ingredientSchema = new Schema(
       fats: { type: Number, default: 0 }
     },
     nutritionalProperties: {
-      type: [String],
-      default: []
-    },
-    dietaryProperties: {
       type: [String],
       default: []
     }

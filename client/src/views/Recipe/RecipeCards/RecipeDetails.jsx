@@ -2,24 +2,10 @@ import React, {useEffect,useState} from 'react';
 import { Modal, Card, Table, Row, Col } from 'react-bootstrap';
 import { Clock, Coffee,Loader} from 'react-feather';
 import avatar2 from '../../../assets/img/avatar2.jpg';
+import { getColorClassForNutrient } from '../../../utils/nutritionUtils';
 
 const RecipeDetails = ({ show, onHide, recipe }) => {
   if (!recipe) return null;
-
-  const getColorClassForNutrient = (type) => {
-      switch (type) {
-        case "calories":
-          return "bg-warning"; // jaune
-        case "proteins":
-          return "bg-pink"; // rose
-        case "carbs":
-          return "bg-info"; // bleu
-        case "fats":
-          return "bg-success"; // vert
-        default:
-          return "bg-secondary";
-      }
-    };
 
     const [portionCount, setPortionCount] = useState(recipe.servings || 2);
     const [baseIngredients, setBaseIngredients] = useState([]);

@@ -8,14 +8,12 @@ const CreateNewIngredient = ({ show, close }) => {
 
   const cookingUnits = useSelector(state=> state.metadataReducer.cookingUnits);
   const nutritionalProperties = useSelector(state => state.metadataReducer.nutritionalProperties);
-  const dietaryProperties = useSelector(state => state.metadataReducer.dietaryProperties);
 
   const [ingredientData, setIngredientData] = useState({
     name: '',
     defaultUnit: 'g',
     units: ['g'],
     unitConversions: { g: 1 },
-    category: '',
     nutritionPer100g: {
       calories: 0,
       proteins: 0,
@@ -23,7 +21,6 @@ const CreateNewIngredient = ({ show, close }) => {
       fats: 0
     },
     nutritionalProperties: [],
-    dietaryProperties: []
   });
 
   const handleChange = (field, value) => {
@@ -55,17 +52,15 @@ const CreateNewIngredient = ({ show, close }) => {
       defaultUnit: 'g',
       units: ['g'],
       unitConversions: { g: 1 },
-      category: '',
       nutritionPer100g: { calories: 0, proteins: 0, carbs: 0, fats: 0 },
       nutritionalProperties: [],
-      dietaryProperties: []
     });
   };
 
   return (
     <Modal show={show} onHide={close} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Créer un nouvel ingrédient</Modal.Title>
+        <Modal.Title>Nouvel ingrédient</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -86,15 +81,6 @@ const CreateNewIngredient = ({ show, close }) => {
             >
               {cookingUnits.map((unit,index)=><option key={index} value={unit.label}>{unit.label}</option>)}
             </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Catégorie</Form.Label>
-            <Form.Control
-              value={ingredientData.category}
-              onChange={e => handleChange('category', e.target.value)}
-              placeholder="Ex: Légumes, Produits laitiers..."
-            />
           </Form.Group>
 
           <h6>Macronutriments (pour 100g)</h6>
@@ -149,17 +135,6 @@ const CreateNewIngredient = ({ show, close }) => {
               label={prop.label}
               checked={ingredientData.nutritionalProperties.includes(prop.label)}
               onChange={() => toggleArrayValue('nutritionalProperties', prop.label)}
-            />
-          ))}
-
-          <h6 className="mt-4">Propriétés diététiques</h6>
-          {dietaryProperties.map((prop, index) => (
-            <Form.Check
-              key={index}
-              type="checkbox"
-              label={prop.label}
-              checked={ingredientData.dietaryProperties.includes(prop.label)}
-              onChange={() => toggleArrayValue('dietaryProperties', prop.label)}
             />
           ))}
 
