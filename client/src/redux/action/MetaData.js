@@ -36,6 +36,8 @@ export const createIngredient = (data) => async dispatch => {
     dispatch({ type: CREATE_INGREDIENT_REQUEST });
     const res = await apiIngredients.createIngredient(data);
     dispatch({ type: CREATE_INGREDIENT_SUCCESS, payload: res.data });
+
+    return res.data
   } catch (error) {
     dispatch({ type: CREATE_INGREDIENT_FAIL, payload: error.message });
   }
@@ -87,6 +89,8 @@ export const createTag = (data) => async dispatch => {
     dispatch({ type: CREATE_TAG_REQUEST });
     const res = await apiTags.createTag(data);
     dispatch({ type: CREATE_TAG_SUCCESS, payload: res.data });
+
+    return res.data
   } catch (error) {
     dispatch({ type: CREATE_TAG_FAIL, payload: error.message });
   }

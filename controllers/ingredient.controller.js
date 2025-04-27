@@ -13,8 +13,6 @@ exports.getAllIngredients = async (req, res) => {
 // GET single ingredient
 exports.getIngredientById = async (req, res) => {
   try {
-
-    console.log("hello")
     const ingredient = await Ingredient.findById(req.params.id);
     if (!ingredient) return res.status(404).json({ message: "Ingrédient introuvable" });
     res.status(200).json(ingredient);
@@ -28,12 +26,17 @@ exports.createIngredient = async (req, res) => {
   try {
     const {
       name,
-      defaultUnit,
-      units,
-      unitConversions,
-      nutritionPer100g,
-      nutritionalProperties,
+      defaultUnit = 'g',
+      units = ['g'],
+      unitConversions = { g: 1 },
+      nutritionPer100g = { calories: 0, proteins: 0, carbs: 0, fats: 0 },
+      nutritionalProperties = [],
     } = req.body;
+
+    // Validation rapide
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ message: "Le nom de l'ingrédient est obligatoire." });
+    }
 
     const newIngredient = new Ingredient({
       name,
@@ -45,11 +48,15 @@ exports.createIngredient = async (req, res) => {
     });
 
     const saved = await newIngredient.save();
+
+    console.log({saved})
     res.status(201).json(saved);
+
   } catch (error) {
     res.status(400).json({ message: "Erreur de création", error: error.message });
   }
 };
+
 
 // PUT update ingredient
 exports.updateIngredient = async (req, res) => {

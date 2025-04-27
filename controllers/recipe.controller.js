@@ -1,5 +1,8 @@
 const Recipe = require("../models/recipe.model");
 const Ingredient = require('../models/ingredient.model');
+const Equipment = require('../models/equipment.model');
+const Tag = require('../models/tag.model');
+
 const { calculateTotalWeightInGrams } = require('../utils/recipeUtils');
 const { calculateNutritionPerPortionAnd100g } = require("../utils/nutritionUtils");
 
@@ -68,35 +71,88 @@ exports.getRecipeById = async (req, res) => {
 // POST /api/recipes
 exports.createRecipe = async (req, res) => {
   try {
-    // DEBUG
-    if (!req.body.data) {
-      return res.status(400).json({ message: "Aucune donnée reçue" });
+    const { title, description, servings, prepTime, cookTime, restTime, steps, tagIds, equipmentIds, recipeIngredients, nutrition } = JSON.parse(req.body.data);
+    
+    // 🔥 Nouveau traitement ici 🔥
+    const updatedRecipeIngredients = await Promise.all(
+      recipeIngredients.map(async ing => {
+        if (ing.ingredientId === 'new' && ing.newName) {
+          // Création d'un nouvel ingrédient minimal
+          const newIngredient = new Ingredient({
+            name: ing.newName,
+            defaultUnit: ing.unit || 'g',
+            units: [ing.unit || 'g'],
+            unitConversions: { [ing.unit || 'g']: 1 },
+          });
+          const savedIngredient = await newIngredient.save();
+          return {
+            ingredientId: savedIngredient._id,
+            quantity: ing.quantity,
+            unit: ing.unit
+          };
+        } else {
+          return ing;
+        }
+      })
+    );
+
+     // 🔥 2. Créer les nouveaux équipements si besoin
+     const updatedEquipmentIds = await Promise.all(
+      equipmentIds.map(async eq => {
+        if (typeof eq === 'object' && eq.newName) {
+          const newEquipment = new Equipment({ name: eq.newName });
+          const savedEquipment = await newEquipment.save();
+          return savedEquipment._id;
+        } else {
+          return eq;
+        }
+      })
+    );
+
+      // 🔥 3. Créer les nouveaux tags si besoin
+      const updatedTagIds = await Promise.all(
+      tagIds.map(async tag => {
+        if (typeof tag === 'object' && tag.newName) {
+          const newTag = new Tag({ label: tag.newName });
+          const savedTag = await newTag.save();
+          return savedTag._id;
+        } else {
+          return tag;
+        }
+      })
+    );
+
+
+    // 🔥 Gestion de l'image
+    let imageUrl = '';
+    if (req.file && req.file.path) {
+      imageUrl = req.file.path; // 👈 Cloudinary renvoie `path`
     }
 
-    let data;
-    try {
-      data = JSON.parse(req.body.data);
-    } catch (e) {
-      return res.status(400).json({ message: "Erreur de parsing JSON", error: e.message });
-    }
-
-    const imageUrl = req.file?.path || ''; // Cloudinary injecte ici l’URL
-
+    // ✅ Créer la recette
     const newRecipe = new Recipe({
-      ...data,
-      image: imageUrl
+      title,
+      description,
+      servings,
+      prepTime,
+      cookTime,
+      restTime,
+      steps,
+      tagIds: updatedTagIds,
+      equipmentIds: updatedEquipmentIds,
+      recipeIngredients: updatedRecipeIngredients,
+      nutrition,
+      image: imageUrl,
     });
-
     const savedRecipe = await newRecipe.save();
     res.status(201).json(savedRecipe);
-  } catch (err) {
-    console.error("Erreur non gérée:", err.stack);
-    res.status(500).json({
-      message: "Erreur serveur",
-      error: err.message,
-    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: "Erreur de création", error: error.message });
   }
 };
+
+
 
 // PUT /api/recipes/:id
 exports.updateRecipe = async (req, res) => {

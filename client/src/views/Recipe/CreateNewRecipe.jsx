@@ -4,6 +4,7 @@ import { Button, Col, Form, Modal, Row } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { createRecipe } from '../../redux/action/Recipes';
 import {getAllIngredients,getAllEquipments,getAllTags,createTag} from "../../redux/action/MetaData"
+import { createIngredient,createEquipment } from '../../redux/action/MetaData';
 
 const CreateNewRecipe = ({ show, close }) => {
     const dispatch = useDispatch();
@@ -15,8 +16,7 @@ const CreateNewRecipe = ({ show, close }) => {
     const ingredientsFromStore = useSelector(state => state.metadataReducer.ingredients);
     const equipmentsFromStore = useSelector(state => state.metadataReducer.equipments);
     const tagsFromStore = useSelector(state => state.metadataReducer.tags);
-    const cookingUnits = useSelector(state=> state.metadataReducer.cookingUnits)
-  
+    const cookingUnits = useSelector(state=> state.metadataReducer.cookingUnits);
 
     useEffect(() => {
         dispatch(getAllIngredients());
@@ -138,74 +138,29 @@ const CreateNewRecipe = ({ show, close }) => {
         return availableTags.filter(tag => !selectedIds.includes(tag._id));
       };
       
-      
-      
-      
-      
-      
-
       const handleSubmit = async () => {
-        const createdIngredientIds = await Promise.all(
-          recipeIngredients
-            .filter(i => i.ingredientId === 'new' && i.newName)
-            .map(async ing => {
-              const res = await dispatch(createIngredient({ name: ing.newName }));
-              return res.payload._id;
-            })
-        );
-      
-        const updatedIngredients = recipeIngredients.map(ing => ({
-          ingredientId: ing.ingredientId === 'new' ? createdIngredientIds.shift() : ing.ingredientId,
-          quantity: ing.quantity,
-          unit: ing.unit
-        }));
-      
-        // Équipements
-        const createdEquipments = await Promise.all(
-          recipeData.equipmentIds
-            .filter(id => typeof id === 'object' && id.newName)
-            .map(async eq => {
-              const res = await dispatch(createEquipment({ name: eq.newName }));
-              return res.payload._id;
-            })
-        );
-        const equipmentIds = recipeData.equipmentIds.map(eq =>
-          typeof eq === 'object' && eq.newName ? createdEquipments.shift() : eq
-        );
-      
-        // Tags
-        const createdTags = await Promise.all(
-          recipeData.tagIds
-            .filter(id => typeof id === 'object' && id.newName)
-            .map(async tag => {
-              const res = await dispatch(createTag({ name: tag.newName }));
-              return res.payload._id;
-            })
-        );
-        const tagIds = recipeData.tagIds.map(tg =>
-          typeof tg === 'object' && tg.newName ? createdTags.shift() : tg
-        );
-      
-        // 🔄 Crée l'objet FormData
-        const formData = new FormData();
         const recipePayload = {
           ...recipeData,
-          tagIds,
-          equipmentIds,
+          tagIds: recipeData.tagIds,
+          equipmentIds: recipeData.equipmentIds,
           steps,
           nutrition,
-          recipeIngredients: updatedIngredients
+          recipeIngredients
         };
-
-  
       
+        const formData = new FormData();
         formData.append("data", JSON.stringify(recipePayload));
-
+      
         if (recipeData.imageFile) {
-          formData.append("image", recipeData.imageFile); // 👈 fichier brut
+          formData.append("image", recipeData.imageFile);
         }
-
-        dispatch(createRecipe(formData));
+      
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+          
+        // ✅ Envoyer la recette
+        await dispatch(createRecipe(formData)); 
 
         // Réinitialiser les champs
         setRecipeData({

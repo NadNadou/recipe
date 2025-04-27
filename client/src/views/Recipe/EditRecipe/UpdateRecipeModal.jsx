@@ -194,7 +194,6 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                 onChange={e => handleIngredientChange(index, 'ingredientId', e.target.value)}
               >
                 <option value="">-- Sélectionner un ingrédient --</option>
-
                 {ingredients
                   .filter(ing => {
                     // Exclure les ingrédients déjà sélectionnés, sauf celui de la ligne courante
@@ -227,8 +226,8 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                 >
                   <option value="">-- Unité --</option>
                   {cookingUnits.map((unit, idx) => (
-                    <option key={idx} value={unit}>
-                      {unit}
+                    <option key={idx} value={unit.label}>
+                      {unit.label}
                     </option>
                   ))}
                 </Form.Select>
