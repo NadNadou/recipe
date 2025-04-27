@@ -342,30 +342,64 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
           <Form.Group className="mb-3">
             <Form.Label>Ajouter un équipement</Form.Label>
             <Form.Select
-              onChange={e => {
+              value=""
+              onChange={(e) => {
                 const selectedId = e.target.value;
-                const selectedEquipment = equipments.find(eq => eq._id === selectedId);
-                if (
-                  selectedId &&
-                  !recipeData.equipmentIds.some(eq => eq._id === selectedId)
-                ) {
+                if (selectedId === "new") {
+                  // Ajouter un champ vide pour créer un nouvel équipement
                   setRecipeData(prev => ({
                     ...prev,
-                    equipmentIds: [...prev.equipmentIds, selectedEquipment],
+                    equipmentIds: [...prev.equipmentIds, { newName: '' }],
                   }));
+                } else {
+                  // Ajouter un équipement existant
+                  const selectedEquipment = equipments.find(eq => eq._id === selectedId);
+                  if (selectedEquipment && !recipeData.equipmentIds.some(eq => (typeof eq === 'object' ? eq._id === selectedEquipment._id : eq === selectedEquipment._id))) {
+                    setRecipeData(prev => ({
+                      ...prev,
+                      equipmentIds: [...prev.equipmentIds, selectedEquipment],
+                    }));
+                  }
                 }
               }}
             >
               <option value="">-- Ajouter un équipement --</option>
               {equipments
-                .filter(eq => !recipeData.equipmentIds.some(e => e._id === eq._id))
+                .filter(eq => !recipeData.equipmentIds.some(e => (typeof e === 'object' ? e._id === eq._id : e === eq._id)))
                 .map(eq => (
                   <option key={eq._id} value={eq._id}>
                     {eq.name}
                   </option>
                 ))}
+              <option value="new">+ Ajouter un nouvel équipement</option>
             </Form.Select>
           </Form.Group>
+
+          {recipeData.equipmentIds.map((eq, idx) => {
+            if (typeof eq === 'object' && eq.newName !== undefined) {
+              return (
+                <Form.Group key={`new-equipment-${idx}`} className="mb-2">
+                  <Form.Label>Nom du nouvel équipement</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={eq.newName}
+                    onChange={(e) => {
+                      const updatedEquipments = [...recipeData.equipmentIds];
+                      updatedEquipments[idx].newName = e.target.value;
+                      setRecipeData(prev => ({
+                        ...prev,
+                        equipmentIds: updatedEquipments,
+                      }));
+                    }}
+                    placeholder="Ex: Marmite, Blender..."
+                  />
+                </Form.Group>
+              );
+            }
+            return null;
+          })}
+
+
 
 
           <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">

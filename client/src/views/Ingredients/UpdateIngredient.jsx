@@ -71,7 +71,7 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
             <Form.Label>Nom</Form.Label>
             <Form.Control
               onChange={e => handleChange('name', e.target.value)}
-              defaultValue={ingredient.name}
+              defaultValue={ingredientData.name}
               placeholder={ingredientData.name}
             />
           </Form.Group>
@@ -95,7 +95,9 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
                 <Form.Label>Calories</Form.Label>
                 <Form.Control
                   type="number"
-                  value={ingredientData.nutritionPer100g.calories}
+                  value = {ingredientData.nutritionPer100g && ingredientData.nutritionPer100g.calories !== undefined 
+                    ? ingredientData.nutritionPer100g.calories 
+                    : 0}
                   onChange={e => handleNutritionChange('calories', e.target.value)}
                 />
               </Form.Group>
@@ -105,7 +107,9 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
                 <Form.Label>Protéines</Form.Label>
                 <Form.Control
                   type="number"
-                  value={ingredientData.nutritionPer100g.proteins}
+                  value = {ingredientData.nutritionPer100g && ingredientData.nutritionPer100g.proteins !== undefined 
+                    ? ingredientData.nutritionPer100g.proteins 
+                    : 0}
                   onChange={e => handleNutritionChange('proteins', e.target.value)}
                 />
               </Form.Group>
@@ -115,7 +119,9 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
                 <Form.Label>Glucides</Form.Label>
                 <Form.Control
                   type="number"
-                  value={ingredientData.nutritionPer100g.carbs}
+                  value = {ingredientData.nutritionPer100g && ingredientData.nutritionPer100g.carbs !== undefined 
+                    ? ingredientData.nutritionPer100g.carbs 
+                    : 0}
                   onChange={e => handleNutritionChange('carbs', e.target.value)}
                 />
               </Form.Group>
@@ -125,9 +131,12 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
                 <Form.Label>Lipides</Form.Label>
                 <Form.Control
                   type="number"
-                  value={ingredientData.nutritionPer100g.fats}
+                  value={ingredientData.nutritionPer100g && ingredientData.nutritionPer100g.fats !== undefined 
+                    ? ingredientData.nutritionPer100g.fats 
+                    : 0}
                   onChange={e => handleNutritionChange('fats', e.target.value)}
                 />
+
               </Form.Group>
             </Col>
           </Row>
