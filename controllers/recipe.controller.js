@@ -2,6 +2,8 @@ const Recipe = require("../models/recipe.model");
 const Ingredient = require('../models/ingredient.model');
 const Equipment = require('../models/equipment.model');
 const Tag = require('../models/tag.model');
+const cloudinary = require('cloudinary').v2;
+
 
 const { calculateTotalWeightInGrams } = require('../utils/recipeUtils');
 const { calculateNutritionPerPortionAnd100g } = require("../utils/nutritionUtils");
@@ -126,7 +128,7 @@ exports.createRecipe = async (req, res) => {
     // 🔥 Gestion de l'image
     let imageUrl = '';
     if (req.file && req.file.path) {
-      imageUrl = req.file.path; // 👈 Cloudinary renvoie `path`
+      imageUrl = req.file.path;
     }
 
     // ✅ Créer la recette
@@ -158,14 +160,73 @@ exports.createRecipe = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
   try {
     const recipeId = req.params.id;
-    const updatedData = JSON.parse(req.body.data); // les autres infos
+    const updatedData = JSON.parse(req.body.data);
 
-    // Si une image a été uploadée, on met à jour le champ
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) return res.status(404).json({ error: 'Recette non trouvée' });
+
+    // 1️⃣ Si une nouvelle image est uploadée
     if (req.file && req.file.path) {
-      updatedData.image = req.file.path; // Lien direct vers Cloudinary
+      if (recipe.image) {
+        const publicId = recipe.image.split('/').slice(-1)[0].split('.')[0];
+        await cloudinary.uploader.destroy(`recipe_DEV/${publicId}`);
+      }
+      updatedData.image = req.file.path; // la nouvelle image Cloudinary
     }
 
+    // 2️⃣ Traiter les Tags
+    const finalTagIds = [];
+    for (const tag of updatedData.tagIds) {
+      if (typeof tag === 'string') {
+        finalTagIds.push(tag);
+      } else if (tag.isNew && tag.label) {
+        const newTag = await Tag.create({ label: tag.label });
+        finalTagIds.push(newTag._id);
+      }
+    }
+    updatedData.tagIds = finalTagIds;
+
+    // 3️⃣ Traiter les Equipements
+    const finalEquipmentIds = [];
+    for (const equip of updatedData.equipmentIds) {
+      if (typeof equip === 'string') {
+        finalEquipmentIds.push(equip);
+      } else if (equip.isNew && equip.name) {
+        const newEquip = await Equipment.create({ name: equip.name });
+        finalEquipmentIds.push(newEquip._id);
+      }
+    }
+    updatedData.equipmentIds = finalEquipmentIds;
+
+    // 4️⃣ Traiter les Ingrédients
+    const finalRecipeIngredients = [];
+    for (const ing of updatedData.recipeIngredients) {
+      if (ing.ingredientId === 'new' && ing.newName) {
+        const newIngredient = await Ingredient.create({ name: ing.newName });
+        finalRecipeIngredients.push({
+          ingredientId: newIngredient._id,
+          quantity: ing.quantity,
+          unit: ing.unit,
+        });
+      } else {
+        finalRecipeIngredients.push({
+          ingredientId: ing.ingredientId,
+          quantity: ing.quantity,
+          unit: ing.unit,
+        });
+      }
+    }
+    updatedData.recipeIngredients = finalRecipeIngredients;
+
+    // 5️⃣ Nettoyer les champs inutiles
+    delete updatedData.imageFile;
+    delete updatedData.createdAt;
+    delete updatedData.updatedAt;
+    delete updatedData.__v;
+
+    // 6️⃣ Mettre à jour la recette
     const updatedRecipe = await Recipe.findByIdAndUpdate(recipeId, updatedData, { new: true });
+
     res.status(200).json(updatedRecipe);
   } catch (err) {
     console.error('Erreur lors de la mise à jour de la recette :', err);
@@ -178,11 +239,26 @@ exports.updateRecipe = async (req, res) => {
 // DELETE /api/recipes/:id
 exports.deleteRecipe = async (req, res) => {
   try {
-    const deleted = await Recipe.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Recette introuvable" });
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) return res.status(404).json({ message: "Recette introuvable" });
 
-    res.status(200).json({ message: "Recette supprimée" });
+    // 🔥 Supprimer l'image sur Cloudinary si elle existe
+    if (recipe.image) {
+      const publicId = recipe.image.split('/').slice(-1)[0].split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(`${process.env.CLOUDINARY_FOLDER}/${publicId}`);
+      } catch (error) {
+        console.error('Erreur lors de la suppression de l\'image Cloudinary :', error.message);
+        // Ne pas throw, on continue la suppression de la recette
+      }
+    }
+
+    // ✅ Supprimer la recette dans MongoDB
+    await Recipe.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: "Recette et image supprimées" });
   } catch (err) {
+    console.error('Erreur lors de la suppression de la recette :', err);
     res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 };

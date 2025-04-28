@@ -5,7 +5,6 @@ import {
   getAllIngredients,
   getAllEquipments,
   getAllTags,
-  createTag,
 } from '../../../redux/action/MetaData';
 import { updateRecipe, getRecipeDetail } from '../../../redux/action/Recipes';
 
@@ -57,10 +56,17 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
   };
 
   const handleIngredientChange = (index, field, value) => {
-    const updated = [...recipeData.recipeIngredients];
-    updated[index][field] = value;
-    setRecipeData(prev => ({ ...prev, recipeIngredients: updated }));
+    setRecipeData(prev => {
+      const updatedIngredients = prev.recipeIngredients.map((ing, i) => {
+        if (i === index) {
+          return { ...ing, [field]: value }; // ✅ deep clone de l'ingrédient
+        }
+        return ing;
+      });
+      return { ...prev, recipeIngredients: updatedIngredients };
+    });
   };
+  
   
   const addIngredient = () => {
     const newIngredient = { ingredientId: '', quantity: '', unit: '' };
@@ -77,20 +83,51 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
       recipeIngredients: updated,
     }));
   };
+
   
   const handleSubmit = async () => {
     const formData = new FormData();
-    const payload = { ...recipeData };
+    const payload = JSON.parse(JSON.stringify(recipeData));
     delete payload.imagePreview;
-
+  
+    payload.recipeIngredients = payload.recipeIngredients.map(ing => {
+      if (ing.ingredientId === 'new' && ing.name) {
+        return { name: ing.name, quantity: ing.quantity, unit: ing.unit, isNew: true };
+      }
+      return ing;
+    });
+  
+    payload.tagIds = payload.tagIds.map(tag => {
+      if (typeof tag === 'string') {
+        return tag;
+      } else if (tag.label && !tag._id) {
+        return { label: tag.label, isNew: true };
+      }
+      return tag._id; // cas normal
+    });
+  
+    payload.equipmentIds = payload.equipmentIds.map(eq => {
+      if (typeof eq === 'string') {
+        return eq;
+      } else if (eq.name && !eq._id) {
+        return { name: eq.name, isNew: true };
+      }
+      return eq._id; // cas normal
+    });
+  
     formData.append('data', JSON.stringify(payload));
+  
     if (recipeData.imageFile) {
       formData.append('image', recipeData.imageFile);
     }
-
+  
+    // console.log('Payload préparé pour envoi :', payload);
+  
     await dispatch(updateRecipe(recipeId, formData));
     onClose();
   };
+  
+  
 
   if (!recipeData) return null;
 
@@ -190,17 +227,24 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
             <Row key={index} className="gx-2 mb-3">
               <Col sm={4}>
               <Form.Select
-                value={ingredient.ingredientId}
-                onChange={e => handleIngredientChange(index, 'ingredientId', e.target.value)}
+                value={ingredient.ingredientId === 'new' ? 'new' : ingredient.ingredientId}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'new') {
+                    handleIngredientChange(index, 'ingredientId', 'new');
+                    handleIngredientChange(index, 'newName', '');
+                  } else {
+                    handleIngredientChange(index, 'ingredientId', val);
+                    handleIngredientChange(index, 'newName', '');
+                  }
+                }}
               >
                 <option value="">-- Sélectionner un ingrédient --</option>
                 {ingredients
                   .filter(ing => {
-                    // Exclure les ingrédients déjà sélectionnés, sauf celui de la ligne courante
                     const selectedIds = recipeData.recipeIngredients
                       .filter((_, i) => i !== index)
                       .map(i => i.ingredientId);
-
                     return !selectedIds.includes(ing._id);
                   })
                   .map(ing => (
@@ -208,7 +252,51 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                       {ing.name}
                     </option>
                   ))}
+                <option value="new">+ Ajouter un nouvel ingrédient</option>
               </Form.Select>
+
+              {ingredient.ingredientId === 'new' && (
+                <Form.Control
+                  className="mt-2"
+                  type="text"
+                  placeholder="Nom du nouvel ingrédient"
+                  value={ingredient.newName || ''}
+                  onChange={(e) => handleIngredientChange(index, 'newName', e.target.value)}
+                />
+              )}
+
+
+
+              {ingredient.newIngredientName !== undefined && (
+                  <div className="mt-2 d-flex gap-2">
+                    <Form.Control
+                      type="text"
+                      placeholder="Nom du nouvel ingrédient"
+                      value={ingredient.newIngredientName}
+                      onChange={e => handleIngredientChange(index, 'newIngredientName', e.target.value)}
+                    />
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      onClick={() => {
+                        const updatedIngredients = [...recipeData.recipeIngredients];
+                        updatedIngredients[index] = {
+                          ingredientName: updatedIngredients[index].newIngredientName,
+                          quantity: '',
+                          unit: '',
+                        };
+                        setRecipeData(prev => ({
+                          ...prev,
+                          recipeIngredients: updatedIngredients,
+                        }));
+                      }}
+                    >
+                      OK
+                    </Button>
+                  </div>
+                )}
+
+
 
               </Col>
               <Col sm={3}>
@@ -248,17 +336,19 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
             + Ajouter un ingrédient
           </Button>
 
+          <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+            <span>Tags</span>
+          </div>
 
           <Form.Group className="mb-3">
-            <Form.Label>Tags sélectionnés</Form.Label>
             <div className="d-flex flex-wrap gap-2">
-              {recipeData.tagIds.map(tagId => {
-                const tag = tags.find(t => t._id === tagId._id);
-                if (!tag) return null;
+            {recipeData.tagIds.map((tagId, index) => {
+              const tag = tags.find(t => t._id === (tagId._id || tagId));
 
+              if (!tag && typeof tagId === 'object' && tagId.label) {
                 return (
-                  <span key={tagId} className="badge bg-primary d-flex align-items-center">
-                    {tag.label}
+                  <span key={`new-tag-${index}`} className="badge bg-warning d-flex align-items-center">
+                    {tagId.label} (Nouveau)
                     <Button
                       size="sm"
                       variant="link"
@@ -266,7 +356,7 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                       onClick={() =>
                         setRecipeData(prev => ({
                           ...prev,
-                          tagIds: prev.tagIds.filter(id => id !== tagId),
+                          tagIds: prev.tagIds.filter((_, idx) => idx !== index),
                         }))
                       }
                     >
@@ -274,22 +364,52 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                     </Button>
                   </span>
                 );
-              })}
+              }
+
+              if (!tag) return null;
+
+              return (
+                <span key={tag._id || index} className="badge bg-primary d-flex align-items-center">
+                  {tag.label}
+                  <Button
+                    size="sm"
+                    variant="link"
+                    className="text-white p-0 ps-2"
+                    onClick={() =>
+                      setRecipeData(prev => ({
+                        ...prev,
+                        tagIds: prev.tagIds.filter((_, idx) => idx !== index),
+                      }))
+                    }
+                  >
+                    ✕
+                  </Button>
+                </span>
+              );
+            })}
+
             </div>
           </Form.Group>
 
           <Form.Select
             onChange={e => {
               const selectedId = e.target.value;
-              const selectedTag = tags.find(t => t._id === selectedId);
-              if (
-                selectedTag &&
-                !recipeData.tagIds.some(t => t._id === selectedTag._id)
-              ) {
+              if (selectedId === "new") {
                 setRecipeData(prev => ({
                   ...prev,
-                  tagIds: [...prev.tagIds, selectedTag],
+                  tagIds: [...prev.tagIds, { newLabel: '' }],
                 }));
+              } else {
+                const selectedTag = tags.find(t => t._id === selectedId);
+                if (
+                  selectedTag &&
+                  !recipeData.tagIds.some(t => t._id === selectedTag._id)
+                ) {
+                  setRecipeData(prev => ({
+                    ...prev,
+                    tagIds: [...prev.tagIds, selectedTag],
+                  }));
+                }
               }
             }}
           >
@@ -301,18 +421,87 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                   {tag.label}
                 </option>
               ))}
+            <option value="new">+ Ajouter un nouveau tag</option>
           </Form.Select>
 
+          {recipeData.tagIds.map((tag, idx) => {
+            if (typeof tag === 'object' && tag.newLabel !== undefined && !tag.validated) {
+              return (
+                <Form.Group key={`new-tag-${idx}`} className="mb-2">
+                  <Form.Label>Nom du nouveau tag</Form.Label>
+                  <div className="d-flex gap-2">
+                    <Form.Control
+                      type="text"
+                      value={tag.newLabel}
+                      onChange={(e) => {
+                        const updatedTags = [...recipeData.tagIds];
+                        updatedTags[idx].newLabel = e.target.value;
+                        setRecipeData(prev => ({
+                          ...prev,
+                          tagIds: updatedTags,
+                        }));
+                      }}
+                      placeholder="Ex: Vegan, Rapide, Healthy..."
+                    />
+                    <Button
+                      variant="outline-success"
+                      onClick={() => {
+                        const updatedTags = [...recipeData.tagIds];
+                        updatedTags[idx] = {
+                          label: updatedTags[idx].newLabel,
+                          validated: true,
+                        };
+                        delete updatedTags[idx].newLabel;
+                        setRecipeData(prev => ({
+                          ...prev,
+                          tagIds: updatedTags,
+                        }));
+                      }}
+                    >
+                      OK
+                    </Button>
+                  </div>
+                </Form.Group>
+              );
+            }
+            return null;
+          })}
 
+
+
+          <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+            <span>Equipements</span>
+          </div>
 
           <Form.Group className="mb-3">
-            <Form.Label>Équipements sélectionnés</Form.Label>
             <div className="d-flex flex-wrap gap-2">
             {recipeData.equipmentIds.map((equip, index) => {
               const equipId = typeof equip === 'object' ? equip._id : equip;
               const equipment = equipments.find(eq => eq._id === equipId);
+              if (!equipment && typeof equip === 'object' && equip.name) {
+                return (
+                  <span key={index} className="badge bg-warning d-flex align-items-center">
+                    {equip.name} (Nouveau)
+                    <Button
+                      size="sm"
+                      variant="link"
+                      className="text-white p-0 ps-2"
+                      onClick={() =>
+                        setRecipeData(prev => ({
+                          ...prev,
+                          equipmentIds: prev.equipmentIds.filter((e, i) => i !== index),
+                        }))
+                      }
+                    >
+                      ✕
+                    </Button>
+                  </span>
+                );
+              }
+              
+              // (ensuite continue le flow normal pour les vrais équipements)
               if (!equipment) return null;
-
+              
               return (
                 <span key={equipId || index} className="badge bg-success d-flex align-items-center">
                   {equipment.name}
@@ -334,13 +523,14 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
                   </Button>
                 </span>
               );
+              
+              
             })}
 
             </div>
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Ajouter un équipement</Form.Label>
             <Form.Select
               value=""
               onChange={(e) => {
@@ -376,31 +566,48 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
           </Form.Group>
 
           {recipeData.equipmentIds.map((eq, idx) => {
-            if (typeof eq === 'object' && eq.newName !== undefined) {
+            if (typeof eq === 'object' && eq.newName !== undefined && !eq.validated) {
               return (
                 <Form.Group key={`new-equipment-${idx}`} className="mb-2">
                   <Form.Label>Nom du nouvel équipement</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={eq.newName}
-                    onChange={(e) => {
-                      const updatedEquipments = [...recipeData.equipmentIds];
-                      updatedEquipments[idx].newName = e.target.value;
-                      setRecipeData(prev => ({
-                        ...prev,
-                        equipmentIds: updatedEquipments,
-                      }));
-                    }}
-                    placeholder="Ex: Marmite, Blender..."
-                  />
+                  <div className="d-flex gap-2">
+                    <Form.Control
+                      type="text"
+                      value={eq.newName}
+                      onChange={(e) => {
+                        const updatedEquipments = [...recipeData.equipmentIds];
+                        updatedEquipments[idx].newName = e.target.value;
+                        setRecipeData(prev => ({
+                          ...prev,
+                          equipmentIds: updatedEquipments,
+                        }));
+                      }}
+                      placeholder="Ex: Marmite, Blender..."
+                    />
+                    <Button
+                      variant="outline-success"
+                      onClick={() => {
+                        const updatedEquipments = [...recipeData.equipmentIds];
+                        updatedEquipments[idx] = {
+                          ...updatedEquipments[idx],
+                          name: updatedEquipments[idx].newName,
+                          validated: true,
+                        };
+                        delete updatedEquipments[idx].newName;
+                        setRecipeData(prev => ({
+                          ...prev,
+                          equipmentIds: updatedEquipments,
+                        }));
+                      }}
+                    >
+                      OK
+                    </Button>
+                  </div>
                 </Form.Group>
               );
             }
             return null;
           })}
-
-
-
 
           <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
             <span>Étapes</span>
