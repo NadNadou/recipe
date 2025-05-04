@@ -1,364 +1,282 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SimpleBar from 'simplebar-react';
-import { Button, Form, InputGroup } from 'react-bootstrap';
+import { OverlayTrigger,Tooltip,Button, Form } from 'react-bootstrap';
 import classNames from 'classnames';
 import moment from 'moment';
 import Swal from 'sweetalert2';
-import DateRangePicker from 'react-bootstrap-daterangepicker';
 import * as Icons from 'react-feather';
 import '@sweetalert2/theme-bootstrap-4/bootstrap-4.css';
 import 'animate.css';
-// Own Custom Components
+
 import HkBadge from '../../components/@hk-badge/@hk-badge';
-import HkChips from '../../components/@hk-chips/@hk-chips';
+import { useDispatch } from 'react-redux';
+import { deletePlan, updatePlan } from '../../redux/action/Plans';
 
-//Images
-import avatar11 from '../../assets/img/avatar11.jpg';
-import avatar12 from '../../assets/img/avatar12.jpg';
-import avatar13 from '../../assets/img/avatar13.jpg';
+const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
+  const dispatch = useDispatch();
 
-const EventsDrawer = ({ show, onClose, info, event }) => {
-    const [editable, setEditable] = useState(false);
-    const [eventColor, setEventColor] = useState("#009B84");
+  const [editable, setEditable] = useState(false);
+  const [eventColor, setEventColor] = useState("#009B84");
+  const [editableMealType, setEditableMealType] = useState("Déjeuner");
+  const [editableNotes, setEditableNotes] = useState("");
+  const [editableDate, setEditableDate] = useState("");
 
-    const hideCalender = (ev, picker) => {
-        picker.container.find(".calendar-table").hide();
-    };
+  useEffect(() => {
+    if (event?.extendedProps) {
+      const {
+        mealType,
+        notes,
+        date,
+        color,
+      } = event.extendedProps;
 
-    const handleClose = () => {
-        if (editable) {
-            setEditable(!editable);
-        }
-        else {
-            onClose();
-        }
+      setEditableMealType(mealType || "Déjeuner");
+      setEditableNotes(notes || "");
+      setEditableDate(moment(date, "DD/MM/YYYY").format("YYYY-MM-DD"));
+      setEventColor(color || "#009B84");
     }
+  }, [event]);
 
-    /*Event Delete*/
-    const DeletEvent = () => {
+  if (!event) return null;
+
+  const {
+    recipeCal,
+    recipeProt,
+    recipeCarbs,
+    recipeFats,
+    recipeCookTime,
+    recipePrepTime,
+    planId,
+    recipeTitle,
+    date,
+    notes,
+    mealType,
+    servings,
+    isBatch
+  } = event.extendedProps || {};
+
+  const handleClose = () => {
+    if (editable) {
+      setEditable(false);
+    } else {
+      onClose();
+    }
+  };
+
+  const DeletEvent = () => {
+    Swal.fire({
+      html: '<div class="mb-3"><i class="ri-delete-bin-6-line fs-5 text-danger"></i></div><h5 class="text-danger">Supprimer ce plan ?</h5><p>Cette action est irréversible.</p>',
+      customClass: {
+        confirmButton: 'btn btn-outline-secondary text-danger',
+        cancelButton: 'btn btn-outline-secondary text-grey',
+        container: 'swal2-has-bg'
+      },
+      showCancelButton: true,
+      buttonsStyling: false,
+      confirmButtonText: 'Oui, supprimer',
+      cancelButtonText: 'Non, annuler',
+      reverseButtons: true,
+      showClass: { popup: 'animate__animated animate__fadeInDown' },
+      hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deletePlan(planId));
         onClose();
         Swal.fire({
-            html:
-                '<div class="mb-3"><i class="ri-delete-bin-6-line fs-5 text-danger"></i></div><h5 class="text-danger">Delete Note ?</h5><p>Deleting a note will permanently remove from your library.</p>',
-            customClass: {
-                confirmButton: 'btn btn-outline-secondary text-danger',
-                cancelButton: 'btn btn-outline-secondary text-grey',
-                container: 'swal2-has-bg'
-            },
-            showCancelButton: true,
-            buttonsStyling: false,
-            confirmButtonText: 'Yes, Delete Note',
-            cancelButtonText: 'No, Keep Note',
-            reverseButtons: true,
-            showDenyButton: false,
-            showClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutUp'
-            }
-        }).then((result) => {
-            if (result.value) {
-                event.remove();
-                Swal.fire({
-                    html:
-                        '<div class="d-flex align-items-center"><i class="ri-delete-bin-5-fill me-2 fs-3 text-danger"></i><h5 class="text-danger mb-0">Event has been deleted!</h5></div>',
-                    timer: 2000,
-                    customClass: {
-                        content: 'p-0 text-left',
-                        actions: 'justify-content-start',
-                    },
+          html: '<div class="d-flex align-items-center"><i class="ri-delete-bin-5-fill me-2 fs-3 text-danger"></i><h5 class="text-danger mb-0">Le plan a été supprimé !</h5></div>',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    });
+  };
+
+  return (
+    <div className={classNames("hk-drawer calendar-drawer drawer-right", { "drawer-toggle": show })}>
+      {/* VIEW MODE */}
+      <div className={classNames({ "d-none": editable })}>
+        <div className="drawer-header">
+          <div className="drawer-header-action">
+            <Button 
+                size="sm" 
+                variant="flush-secondary" 
+                className="btn-icon btn-rounded flush-soft-hover"          
+                onClick={() => setEditable(true)}
+            >
+              <Icons.Edit2 />
+            </Button>
+
+            <OverlayTrigger
+                placement="top"
+                overlay={
+                    <Tooltip>
+                    {event?.extendedProps?.isBatch
+                        ? "Ce plan est automatique et ne peut être supprimé."
+                        : "Supprimer ce plan"}
+                    </Tooltip>
+                }
+            >
+            <span className="d-inline-block">
+                <Button 
+                size="sm" 
+                variant="flush-secondary" 
+                className="btn-icon btn-rounded flush-soft-hover" 
+                onClick={DeletEvent}
+                disabled={event?.extendedProps?.isBatch}
+                style={event?.extendedProps?.isBatch ? { pointerEvents: 'none' } : {}}
+                >
+                <Icons.Trash2 />
+                </Button>
+            </span>
+            </OverlayTrigger>
+
+
+
+            <Button size="sm" variant="flush-secondary" className="btn-icon btn-rounded flush-soft-hover me-2">
+              <Icons.ExternalLink />
+            </Button>
+            <Button bsPrefix="btn-close" className="drawer-close" onClick={onClose}>
+              <span aria-hidden="true">×</span>
+            </Button>
+          </div>
+        </div>
+        <div className="drawer-body">
+          <SimpleBar className="nicescroll-bar">
+            <div className="drawer-content-wrap">
+              <div className="event-head mb-4">
+                <HkBadge style={{ backgroundColor: eventColor }} indicator className="badge-indicator-xl flex-shrink-0 me-2" />
+                <div>
+                  <div className="event-name">{recipeTitle || "Recette"}</div>
+                  <span>{mealType}</span>
+                </div>
+              </div>
+              <ul className="event-detail">
+                <li>
+                  <span className="ev-icon-wrap"><Icons.Calendar /></span>
+                  {date}
+                </li>
+                {servings && (
+                <li>
+                    <span className="ev-icon-wrap"><Icons.Users /></span>
+                    Nombre de portions : {servings}
+                </li>
+                )}
+
+                {mealType !== "Babyfood" && (
+                <li>
+                    <span className="ev-icon-wrap"><Icons.Activity /></span>
+                    <div>
+                    <strong>Macros pour 100g :</strong><br />
+                    🥩 {recipeProt || 0} g protéines<br />
+                    🍞 {recipeCarbs || 0} g glucides<br />
+                    🧈 {recipeFats || 0} g lipides<br />
+                    🔥 {recipeCal || 0} kcal
+                    </div>
+                </li>
+                )}
+
+                {recipePrepTime && (
+                  <li>
+                    <span className="ev-icon-wrap"><Icons.Tool /></span>
+                    Temps de préparation : {recipePrepTime} min
+                  </li>
+                )}
+                {recipeCookTime && (
+                  <li>
+                    <span className="ev-icon-wrap"><Icons.Clock /></span>
+                    Temps de cuisson : {recipeCookTime} min
+                  </li>
+                )}
+                {notes && (
+                  <li>
+                    <span className="ev-icon-wrap"><Icons.Menu /></span>
+                    {notes}
+                  </li>
+                )}
+              </ul>
+            </div>
+          </SimpleBar>
+        </div>
+      </div>
+
+      {/* EDIT MODE */}
+      <div className={classNames({ "d-none": !editable })}>
+        <div className="drawer-header">
+          <div className="drawer-header-action">
+            <Button size="sm" variant="flush-secondary" className="btn-icon btn-rounded flush-soft-hover me-2">
+              <Icons.ExternalLink />
+            </Button>
+            <Button bsPrefix="btn-close" className="drawer-close" onClick={handleClose}>
+              <span aria-hidden="true">×</span>
+            </Button>
+          </div>
+        </div>
+        <div className="drawer-body">
+          <SimpleBar className="nicescroll-bar">
+            <div className="drawer-content-wrap">
+              <Form.Group className="mt-3">
+                <Form.Label>Type de repas</Form.Label>
+                <Form.Select value={editableMealType} onChange={(e) => setEditableMealType(e.target.value)}>
+                  <option value="Petit-déjeuner">Petit-déjeuner</option>
+                  <option value="Déjeuner">Déjeuner</option>
+                  <option value="Dîner">Dîner</option>
+                  <option value="Snack">Snack</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mt-3">
+                <Form.Label>Notes</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  disabled={isBatch}
+                  value={editableNotes}
+                  onChange={(e) => setEditableNotes(e.target.value)}
+                  placeholder="Ajouter des notes..."
+                />
+              </Form.Group>
+
+              <Form.Group className="mt-3">
+                <Form.Label>Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={editableDate}
+                  onChange={(e) => setEditableDate(e.target.value)}
+                />
+              </Form.Group>
+            </div>
+          </SimpleBar>
+        </div>
+        <div className="drawer-footer d-flex justify-content-end">
+          <Button variant="secondary" className="drawer-edit-close me-2" onClick={() => setEditable(false)}>Annuler</Button>
+          <Button
+            variant="primary"
+            className="drawer-edit-close"
+            onClick={() => {
+                dispatch(updatePlan(planId, {
+                  mealType: editableMealType,
+                  date: editableDate,
+                  notes: editableNotes,
+                })).then(() => {
+                  if (onUpdate) onUpdate();
+                  setEditable(false);
+                  onClose();
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Mis à jour',
+                    text: 'Le plan a bien été mis à jour.',
+                    timer: 1500,
                     showConfirmButton: false,
-                    buttonsStyling: false,
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
-                })
-            }
-        })
-    }
+                  });
+                });
+              }}
+          >
+            Enregistrer
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-    return (
-        <div className={classNames("hk-drawer calendar-drawer drawer-right", { "drawer-toggle": show })} >
-            <div className={classNames({ "d-none": editable })}>
-                <div className="drawer-header">
-                    <div className="drawer-header-action">
-                        <Button size="sm" variant="flush-secondary" id="edit_event" className="btn-icon btn-rounded flush-soft-hover" onClick={() => setEditable(!editable)} >
-                            <span className="icon">
-                                <span className="feather-icon">
-                                    <Icons.Edit2 />
-                                </span>
-                            </span>
-                        </Button>
-                        <Button size="sm" variant="flush-secondary" id="del_event" className="btn-icon btn-rounded flush-soft-hover" onClick={DeletEvent} >
-                            <span className="icon">
-                                <span className="feather-icon">
-                                    <Icons.Trash2 />
-                                </span>
-                            </span>
-                        </Button>
-                        <Button size="sm" variant="flush-secondary" className="btn-icon btn-rounded flush-soft-hover me-2">
-                            <span className="icon">
-                                <span className="feather-icon">
-                                    <Icons.ExternalLink />
-                                </span>
-                            </span>
-                        </Button>
-                        <Button bsPrefix="btn-close" className="drawer-close" onClick={onClose} >
-                            <span aria-hidden="true">×</span>
-                        </Button>
-                    </div>
-                </div>
-                <div className="drawer-body">
-                    <SimpleBar className="nicescroll-bar">
-                        <div className="drawer-content-wrap">
-                            <div className="event-head mb-4">
-                                <HkBadge bg="violet" indicator className="badge-indicator-xl flex-shrink-0 me-2" />
-                                <div>
-                                    <div className="event-name">{info}</div>
-                                    <span>Event</span>
-                                </div>
-                            </div>
-                            <ul className="event-detail">
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.Calendar />
-                                        </span>
-                                    </span>
-                                    Aug 18,2020 - Aug 19, 2020
-                                </li>
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.Clock />
-                                        </span>
-                                    </span>
-                                    8:40 AM - 5:40 PM
-                                </li>
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.MapPin />
-                                        </span>
-                                    </span>
-                                    Oslo, Canada
-                                </li>
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.CheckSquare />
-                                        </span>
-                                    </span>
-                                    Meetings
-                                </li>
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.Eye />
-                                        </span>
-                                    </span>
-                                    Default Visibility
-                                </li>
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.UserPlus />
-                                        </span>
-                                    </span>
-                                    <div className="d-flex flex-wrap">
-                                        <HkChips variant="primary" src={avatar11} className="mb-2 me-2" >Morgan</HkChips>
-                                        <HkChips variant="primary" src={avatar12} className="mb-2 me-2" >Charlie</HkChips>
-                                        <HkChips variant="primary" src={avatar13} className="mb-2 me-2" >Winston</HkChips>
-                                    </div>
-                                </li>
-                                <li>
-                                    <span className="ev-icon-wrap">
-                                        <span className="feather-icon">
-                                            <Icons.Menu />
-                                        </span>
-                                    </span>
-                                    Annual meeting with global branch teams &amp; bosses about growth planning and fiscal year reports
-                                </li>
-                            </ul>
-                        </div>
-                    </SimpleBar>
-                </div>
-            </div>
-            <div className={classNames({ "d-none": !editable })}>
-                <div className="drawer-header">
-                    <div className="drawer-header-action">
-                        <Button size="sm" variant="flush-secondary" className="btn-icon btn-rounded flush-soft-hover me-2">
-                            <span className="icon">
-                                <span className="feather-icon">
-                                    <Icons.ExternalLink />
-                                </span>
-                            </span>
-                        </Button>
-                        <Button bsPrefix="btn-close" className="drawer-close" onClick={handleClose} >
-                            <span aria-hidden="true">×</span>
-                        </Button>
-                    </div>
-                </div>
-                <div className="drawer-body">
-                    <SimpleBar className="nicescroll-bar">
-                        <div className="drawer-content-wrap">
-                            <div className="event-head mb-4">
-                                <HkBadge bg="violet" indicator className="badge-indicator-xl flex-shrink-0 me-2" />
-                                <div>
-                                    <div id="editableContent" contentEditable="true" suppressContentEditableWarning={true} className="event-name">{info}</div>
-                                    <Form.Group className="mt-2 mb-0">
-                                        <Form.Check
-                                            inline
-                                            label="Event"
-                                            name="group1"
-                                            type="radio"
-                                            id="radio-1"
-                                            defaultChecked
-                                        />
-                                        <Form.Check
-                                            inline
-                                            label="Reminder"
-                                            name="group1"
-                                            type="radio"
-                                            id="radio-2"
-                                        />
-                                    </Form.Group>
-                                </div>
-                            </div>
-                            <Form>
-                                <Form.Group className="mb-3" >
-                                    <InputGroup>
-                                        <span className="input-affix-wrapper">
-                                            <span className="input-prefix">
-                                                <span className="feather-icon">
-                                                    <Icons.Calendar />
-                                                </span>
-                                            </span>
-                                            <DateRangePicker
-                                                initialSettings={{
-                                                    timePicker: true,
-                                                    startDate: moment().startOf('hour').toDate(),
-                                                    endDate: moment().startOf('hour').add(32, 'hour').toDate(),
-                                                    locale: {
-                                                        format: 'M/DD hh:mm A',
-                                                    },
-                                                }}
-                                            >
-                                                <Form.Control type="text" name="datetimes" />
-                                            </DateRangePicker>
-                                        </span>
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <InputGroup>
-                                        <span className="input-affix-wrapper">
-                                            <span className="input-prefix">
-                                                <span className="feather-icon">
-                                                    <Icons.Clock />
-                                                </span>
-                                            </span>
-                                            <DateRangePicker
-                                                initialSettings={{
-                                                    timePicker: true,
-                                                    timePicker24Hour: true,
-                                                    timePickerIncrement: 1,
-                                                    timePickerSeconds: true,
-                                                    locale: {
-                                                        format: 'HH:mm:ss'
-                                                    }
-                                                }}
-                                                onShow={hideCalender}
-                                            >
-                                                <Form.Control className="input-timepicker" type="text" name="time" />
-                                            </DateRangePicker>
-                                        </span>
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <InputGroup>
-                                        <span className="input-affix-wrapper">
-                                            <span className="input-prefix">
-                                                <span className="feather-icon">
-                                                    <Icons.MapPin />
-                                                </span>
-                                            </span>
-                                            <Form.Control type="text" className="form-wth-icon" defaultValue="Oslo, Canada" />
-                                        </span>
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <InputGroup>
-                                        <span className="input-affix-wrapper">
-                                            <span className="input-prefix">
-                                                <span className="feather-icon">
-                                                    <Icons.CheckSquare />
-                                                </span>
-                                            </span>
-                                            <Form.Select>
-                                                <option value={1}>All Time</option>
-                                                <option value={2}>Half Day</option>
-                                                <option value={3}>9 to 5</option>
-                                            </Form.Select>
-                                        </span>
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <InputGroup>
-                                        <span className="input-affix-wrapper">
-                                            <span className="input-prefix">
-                                                <span className="feather-icon">
-                                                    <Icons.Eye />
-                                                </span>
-                                            </span>
-                                            <Form.Select>
-                                                <option value={0}>Default Visibility</option>
-                                                <option value={1}>Private</option>
-                                                <option value={2}>Public</option>
-                                            </Form.Select>
-                                        </span>
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <InputGroup className="color-picker">
-                                        <InputGroup.Text className="colorpicker-input-addon">
-                                            <Form.Control
-                                                type="color"
-                                                id="exampleColorInput"
-                                                title="Choose your color"
-                                                value={eventColor}
-                                                onChange={e => setEventColor(e.target.value)}
-                                            />
-                                        </InputGroup.Text>
-                                        <Form.Control type="text" value={eventColor} onChange={() => setEventColor(eventColor)} />
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <div className="d-flex flex-wrap">
-                                        <HkChips variant="primary" src={avatar11} dismissable className="mb-2 me-2" >Morgan</HkChips>
-                                        <HkChips variant="primary" src={avatar12} dismissable className="mb-2 me-2" >Charlie</HkChips>
-                                        <HkChips variant="primary" src={avatar13} dismissable className="mb-2 me-2" >Winston</HkChips>
-                                        <Form.Control type="text" className="border-0 p-0 shadow-none flex-1 mb-2 me-2" />
-                                    </div>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <Form.Control as="textarea" rows={4} defaultValue={"Annual meeting with global branch teams & bosses about growth planning and fiscal year reports"} />
-                                </Form.Group>
-                            </Form>
-                        </div>
-                    </SimpleBar>
-                </div>
-                <div className="drawer-footer d-flex justify-content-end">
-                    <Button variant="secondary" className="drawer-edit-close me-2" onClick={() => setEditable(!editable)}>discard</Button>
-                    <Button variant="primary" className="drawer-edit-close" onClick={() => setEditable(!editable)} >save</Button>
-                </div>
-            </div>
-        </div >
-
-    )
-}
-
-export default EventsDrawer
+export default EventsDrawer;

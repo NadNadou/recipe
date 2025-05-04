@@ -1,5 +1,6 @@
 /* eslint-disable no-useless-concat */
 import React, { createRef, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button, ButtonGroup } from 'react-bootstrap';
 import classNames from 'classnames';
 import FullCalendar from '@fullcalendar/react';
@@ -10,7 +11,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import moment from 'moment';
 import { useWindowHeight } from '@react-hook/window-size';
 import CalendarSidebar from './CalendarSidebar';
-import { CalendarEvents } from './Events';
 import EventsDrawer from './EventsDrawer';
 import CreateNewEvent from './CreateNewEvent';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -22,7 +22,55 @@ import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ChevronDown, ChevronUp } from 'react-feather';
 
+import { getAllPlans,updatePlanDate } from '../../redux/action/Plans';
+
 const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
+    const dispatch = useDispatch();
+    
+    const {plans} = useSelector(state => state.planReducer);
+    const { mealTypes } = useSelector((state) => state.metadataReducer);
+
+    const getDefaultTime = (mealType) => {
+        const match = mealTypes.find(m => m.label === mealType || m.value === mealType);
+        return match?.defaultTime || '12:00';
+      };
+
+    const CalendarEvents = plans.map((plan) => {
+        const recipeTitle = plan.recipeId?.title || "Recette";
+        const recipePrepTime = plan.recipeId?.prepTime|| 0;
+        const recipeCookTime = plan.recipeId?.cookTime|| 0;
+        const recipeNutrition = plan.recipeId?.nutrition|| {};
+        const recipeServings = plan.recipeId?.servings|| 0;
+
+        const date = plan.date ? plan.date.split('T')[0] : '';
+        const time = getDefaultTime(plan.mealType);
+    
+        const mealConfig = mealTypes.find(type => type.label.toLowerCase() === plan.mealType.toLowerCase());
+
+        return {
+            title: `${plan.mealType} – ${recipeTitle}`,
+          start: `${date}T${time}`,
+          backgroundColor: mealConfig?.backgroundColor || '#ccc',
+          borderColor: mealConfig?.borderColor || '#ccc',
+          extendedProps: {
+            color:mealConfig?.backgroundColor || '#ccc',
+            notes: plan.notes,
+            mealType: plan.mealType,
+            recipeId: plan.recipeId?._id,
+            recipeCal:recipeNutrition?.caloriesPer100g,
+            recipeProt:recipeNutrition?.proteinsPer100g,
+            recipeCarbs:recipeNutrition?.carbsPer100g,
+            recipeFats:recipeNutrition?.fatsPer100g,
+            recipeCookTime:recipeCookTime,
+            recipePrepTime:recipePrepTime,
+            planId: plan._id,
+            recipeTitle: recipeTitle,
+            servings:recipeServings,
+            isBatch:!!plan.parentPlanId,
+            date: moment(plan.date).format("DD/MM/YYYY"),
+          }
+        };
+      });
 
     let calendarRef = createRef()
     var curYear = moment().format('YYYY'),
@@ -42,7 +90,13 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
         if (calApi) {
             setDate(moment(calApi.getDate()));
         }
-    }, [calendarRef]);
+    }, []);
+    // }, [calendarRef]);
+
+    useEffect( () => {
+        dispatch(getAllPlans())
+    },[])
+
 
     //Function for date change
     const handleChange = (action) => {
@@ -70,7 +124,7 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
                 calendarApi.changeView("timeGridWeek");
             }
             else if (view === 'day') {
-                calendarApi.changeView("dayGridWeek");
+                calendarApi.changeView("timeGridDay");
             }
             else if (view === 'list') {
                 calendarApi.changeView("listWeek");
@@ -83,6 +137,27 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
             setCurrentView(view);
         }
     }
+
+    const handleEventDrop = async (info) => {
+        const { event } = info;
+        const planId = event.extendedProps.planId;
+        const newDate = event.start;
+      
+        try {
+          await dispatch(updatePlanDate(planId, newDate));
+      
+          // ⬇️ Rafraîchit la liste complète des plans (ou juste celui modifié si tu as une action dédiée)
+          await dispatch(getAllPlans());
+      
+          // ✅ Optionnel : notification utilisateur
+          console.log(`Plan mis à jour pour le ${moment(newDate).format("DD/MM/YYYY")}`);
+        } catch (err) {
+          console.error("Erreur lors du déplacement du plan :", err);
+          info.revert(); // Remet l’événement à sa place initiale
+        }
+      };
+      
+      
 
     const toggleSidebar = () => {
         setShowSidebar(!showSidebar)
@@ -119,10 +194,10 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
                                 </div>
                                 <div className="cd-options-wrap d-flex flex-1 justify-content-end">
                                     <ButtonGroup className="d-none d-md-flex">
-                                        <Button variant="outline-light" onClick={() => handleView("month")} active={currentView === "month"} >month</Button>
-                                        <Button variant="outline-light" onClick={() => handleView("week")} active={currentView === "week"}>week</Button>
-                                        <Button variant="outline-light" onClick={() => handleView("day")} active={currentView === "day"}>day</Button>
-                                        <Button variant="outline-light" onClick={() => handleView("list")} active={currentView === "list"}>list</Button>
+                                        <Button variant="outline-light" onClick={() => handleView("month")} active={currentView === "dayGridMonth"} >month</Button>
+                                        <Button variant="outline-light" onClick={() => handleView("week")} active={currentView === "timeGridWeek"}>week</Button>
+                                        <Button variant="outline-light" onClick={() => handleView("day")} active={currentView === "timeGridDay"}>day</Button>
+                                        <Button variant="outline-light" onClick={() => handleView("list")} active={currentView === "listWeek"}>list</Button>
                                     </ButtonGroup>
                                     <Button as="a" variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover hk-navbar-togglable" onClick={() => toggleTopNav(!topNavCollapsed)} >
                                         <span className="icon">
@@ -149,6 +224,7 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
                                 windowResizeDelay={500}
                                 droppable={true}
                                 editable={true}
+                                firstDay={1}
                                 events={CalendarEvents}
                                 // eventContent={
                                 //     function (arg) {
@@ -157,8 +233,9 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
                                 //         }
                                 //     }
                                 // }
+                                eventDrop={handleEventDrop}
+
                                 eventClick={function (info) {
-                                    // console.log(info);
                                     setTargetEvent(info.event);
                                     setEventTitle(info.event._def.title);
                                     setShowEventInfo(true);
@@ -171,7 +248,7 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
             </div>
 
             {/* Event Info */}
-            <EventsDrawer show={showEventInfo} info={eventTitle} event={targetEvent} onClose={() => setShowEventInfo(!showEventInfo)} />
+            <EventsDrawer show={showEventInfo} info={eventTitle} event={targetEvent} onClose={() => setShowEventInfo(!showEventInfo)} onUpdate={() => dispatch(getAllPlans())}  />
 
             {/* New Event */}
             <CreateNewEvent calendarRef={calendarRef} show={createEvent} hide={() => setCreateEvent(!createEvent)} />

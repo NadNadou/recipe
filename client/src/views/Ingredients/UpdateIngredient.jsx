@@ -6,8 +6,6 @@ import { updateIngredient } from '../../redux/action/MetaData';
 const UpdateIngredient = ({ show, close, ingredient }) => {
   const dispatch = useDispatch();
 
-  console.log({ingredient})
-
   const cookingUnits = useSelector(state => state.metadataReducer.cookingUnits);
   const nutritionalProperties = useSelector(state => state.metadataReducer.nutritionalProperties);
 

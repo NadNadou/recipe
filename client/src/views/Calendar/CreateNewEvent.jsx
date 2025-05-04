@@ -1,26 +1,56 @@
-import React, { useState } from 'react';
-import { Button, Col, Form, InputGroup, Modal, Row } from 'react-bootstrap';
-import DateRangePicker from 'react-bootstrap-daterangepicker';
+import React, { useEffect, useState } from 'react';
+import { Button, Form, Modal } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
 
-const CreateNewEvent = ({ show, hide, calendarRef }) => {
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { fr } from 'date-fns/locale';
 
-    const [title, setTitle] = useState("");
+import { getAllRecipes } from '../../redux/action/Recipes';
+import { createPlan } from '../../redux/action/Plans';
+
+const CreateNewEvent = ({ show, hide }) => {
+    const dispatch = useDispatch();
+
     const [start, setStart] = useState(new Date());
-    const [end, setEnd] = useState(new Date());
-    const [backgroundColor, setBackgroundColor] = useState("#009B84");
 
-    const updateEventList = (e) => {
-        e.preventDefault()
-        let calendarApi = calendarRef.current.getApi();
-        calendarApi.addEvent({
-            backgroundColor: backgroundColor,
-            borderColor: backgroundColor,
-            title: title,
-            start: start,
-            end: end,
-        });
-        hide();
-    }
+
+    useEffect(() => {
+        dispatch(getAllRecipes());
+    }, []);
+
+    const { recipes } = useSelector(state => state.recipeReducer);
+    const {mealTypes} = useSelector(state => state.metadataReducer);
+
+    const [selectedRecipe, setSelectedRecipe] = useState(null);
+    const [mealType, setMealType] = useState("Déjeuner");
+    const [notes, setNotes] = useState("");
+    const [servings, setServings] = useState(1);
+
+
+    const handleSubmitPlan = (e) => {
+        e.preventDefault();
+      
+        if (!selectedRecipe) return alert("Veuillez choisir une recette");
+      
+        const payload = {
+            recipeId: selectedRecipe,
+            date: start,
+            mealType,
+            notes,
+            servings
+          };
+          
+      
+        dispatch(createPlan(payload))
+          .then(() => {
+            hide(); // ferme le modal seulement si succès-
+          })
+          .catch((err) => {
+            console.error("❌ Erreur lors de la création du plan", err);
+          });
+      };
+      
 
     const hideCalender = (ev, picker) => {
         picker.container.find(".calendar-table").hide();
@@ -32,180 +62,80 @@ const CreateNewEvent = ({ show, hide, calendarRef }) => {
                 <Button bsPrefix='btn-close' onClick={hide} >
                     <span aria-hidden="true">×</span>
                 </Button>
-                <h5 className="mb-4">Create New Event</h5>
+                <h5 className="mb-4">Plan new recipe</h5>
                 <Form>
-                    <Row className="gx-3">
-                        <Col sm={12} as={Form.Group} className="mb-3" >
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control className="cal-event-name" type="text" value={title} onChange={e => setTitle(e.target.value)} />
-                        </Col>
-                    </Row>
-                    <Row className="gx-3">
-                        <Col sm={12} as={Form.Group} className="mb-3" >
-                            <div className="form-label-group">
-                                <Form.Label>Note/Description</Form.Label>
-                                <small className="text-muted">200</small>
-                            </div>
-                            <Form.Control as="textarea" rows={3} />
-                        </Col>
-                    </Row>
-                    <Row className="gx-3">
-                        <Col sm={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Start Date</Form.Label>
-                                <DateRangePicker
-                                    initialSettings={{
-                                        singleDatePicker: true,
-                                        showDropdowns: true,
-                                        startDate: start,
-                                    }}
-                                    onApply={(event, picker) => {
-                                        setStart(new Date(picker.startDate));
-                                    }}
-                                >
-                                    <Form.Control type="text" name="single-date-pick1" />
-                                </DateRangePicker>
-                            </Form.Group>
-                        </Col>
-                        <Col sm={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Start Time</Form.Label>
-                                <DateRangePicker
-                                    initialSettings={{
-                                        singleDatePicker: true,
-                                        timePicker: true,
-                                        timePicker24Hour: true,
-                                        timePickerIncrement: 1,
-                                        timePickerSeconds: true,
-                                        locale: {
-                                            format: 'HH:mm:ss'
-                                        }
-                                    }}
-                                    onShow={hideCalender}
-                                >
-                                    <Form.Control className="input-timepicker" type="text" name="time" />
-                                </DateRangePicker>
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row className="gx-3">
-                        <Col sm={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>End Date</Form.Label>
-                                <DateRangePicker
-                                    initialSettings={{
-                                        singleDatePicker: true,
-                                        showDropdowns: true,
-                                        startDate: end,
-                                    }}
-                                    onApply={(event, picker) => {
-                                        setEnd(new Date(picker.startDate));
-                                    }}
-                                >
-                                    <Form.Control type="text" name="single-date-pick2" />
-                                </DateRangePicker>
-                            </Form.Group>
-                        </Col>
-                        <Col sm={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>End Time</Form.Label>
-                                <DateRangePicker
-                                    initialSettings={{
-                                        singleDatePicker: true,
-                                        timePicker: true,
-                                        timePicker24Hour: true,
-                                        timePickerIncrement: 1,
-                                        timePickerSeconds: true,
-                                        locale: {
-                                            format: 'HH:mm:ss'
-                                        }
-                                    }}
-                                    onShow={hideCalender}
-                                >
-                                    <Form.Control className="input-timepicker" type="text" name="time" />
-                                </DateRangePicker>
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row className="gx-3">
-                        <Col sm={12}>
-                            <Form.Label>Location</Form.Label>
-                            <Form.Group className="mb-3" >
-                                <Form.Control type="text" />
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row className="gx-3">
-                        <Col sm={5}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Category</Form.Label>
-                                <Form.Control type="text" />
-                            </Form.Group>
-                        </Col>
-                        <Col sm={7}>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Visibility</Form.Label>
-                                <div className="d-flex">
-                                    <Form.Select className="me-3" >
-                                        <option value={1}>Public</option>
-                                        <option value={2}>Private</option>
-                                    </Form.Select>
-                                    <InputGroup className="color-picker w-auto">
-                                        <span className="input-group-text colorpicker-input-addon rounded-3">
-                                            <Form.Control
-                                                type="color"
-                                                id="exampleColorInput"
-                                                value={backgroundColor}
-                                                title="Choose your color"
-                                                onChange={e => setBackgroundColor(e.target.value)}
-                                            />
-                                        </span>
-                                    </InputGroup>
-                                </div>
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                    <Row className="gx-3">
-                        <Col sm={12}>
-                            <Form.Group className="mt-3">
-                                <Form.Label className="me-3">Set priority:</Form.Label>
-                                <Form.Check
-                                    inline
-                                    label="Urgent"
-                                    name="group1"
-                                    type="radio"
-                                    id="urgent"
-                                    defaultChecked
-                                />
-                                <Form.Check
-                                    inline
-                                    label="High"
-                                    name="group1"
-                                    type="radio"
-                                    id="high"
-                                />
-                                <Form.Check
-                                    inline
-                                    label="Low"
-                                    name="group1"
-                                    type="radio"
-                                    id="low"
-                                />
-                                <Form.Check
-                                    inline
-                                    label="Medium"
-                                    name="group1"
-                                    type="radio"
-                                    id="medium"
-                                />
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                <Form.Label>Recette</Form.Label>
+                    <Form.Select
+                    value={selectedRecipe || ""}
+                    onChange={e => setSelectedRecipe(e.target.value)}
+                    >
+                    <option value="">-- Choisir une recette --</option>
+                    {recipes?.map((r) => (
+                        <option key={r._id} value={r._id}>{r.title}</option>
+                    ))}
+                    </Form.Select>
+                    <Form.Label className="mt-3">Type de repas</Form.Label>
+                    <Form.Select
+                    value={mealType}
+                    onChange={e => setMealType(e.target.value)}
+                    >
+                    {mealTypes.map((type) => (
+                        <option key={type.value} value={type.label}>
+                        {type.label}
+                        </option>
+                    ))}
+                    </Form.Select>
+
+
+                    <Form.Group className="mt-3">
+                        <Form.Label>Nombre de parts</Form.Label>
+                        <Form.Control
+                            type="number"
+                            min={1}
+                            value={servings}
+                            onChange={(e) => setServings(Number(e.target.value))}
+                        />
+                    </Form.Group>
+
+
+                    {selectedRecipe && (
+                    <div className="mt-3 p-3 bg-light rounded">
+                        <p><strong>Calories :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.calories} kcal</p>
+                        <p><strong>Protéines :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.proteins} g</p>
+                        <p><strong>Glucides :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.carbs} g</p>
+                        <p><strong>Lipides :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.fats} g</p>
+                    </div>
+                    )}
+
+
+                <Form.Group className="mb-3 mt-2 text-left">
+                    <Form.Label className="mb-2">Date</Form.Label>
+                    <div className="d-flex justify-content-center">
+                        <DatePicker
+                        selected={start}
+                        onChange={(date) => setStart(date)}
+                        dateFormat="dd/MM/yyyy"
+                        locale={fr}
+                        minDate={new Date()}
+                        inline
+                        />
+                    </div>
+                </Form.Group>
+
+
+                    <Form.Label className="mt-3">Notes</Form.Label>
+                    <Form.Control 
+                        as="textarea" 
+                        rows={2} 
+                        value={notes} 
+                        onChange={(e) => setNotes(e.target.value)} 
+                    />
+
                 </Form>
             </Modal.Body>
             <Modal.Footer className="align-items-center">
                 <Button variant="secondary" onClick={hide} >Discard</Button>
-                <Button variant="primary" className="fc-addEventButton-button" onClick={updateEventList} >Add</Button>
+                <Button variant="primary" className="fc-addEventButton-button" onClick={handleSubmitPlan} >Add</Button>
             </Modal.Footer>
         </Modal>
     )

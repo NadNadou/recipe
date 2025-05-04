@@ -50,6 +50,43 @@ import {
     equipments: [],
     loading: false,
     error: null,
+    mealTypes: [
+      {
+        value: 'breakfast',
+        label: 'Petit-déjeuner',
+        backgroundColor: '#FFD700',
+        borderColor: '#FFC107',
+        defaultTime: '08:00',
+      },
+      {
+        value: 'lunch',
+        label: 'Déjeuner',
+        backgroundColor: '#4CAF50',
+        borderColor: '#43A047',
+        defaultTime: '12:00',
+      },
+      {
+        value: 'snack',
+        label: 'Snack',
+        backgroundColor: '#FF5722',
+        borderColor: '#F4511E',
+        defaultTime: '16:00',
+      },
+      {
+        value: 'dinner',
+        label: 'Dîner',
+        backgroundColor: '#2196F3',
+        borderColor: '#1E88E5',
+        defaultTime: '20:00',
+      },
+      {
+        value: 'baby',
+        label: 'Babyfood',
+        backgroundColor: '#FFEFD5',
+        borderColor: '#F4A460',        
+        defaultTime: '13:00',
+      },
+    ],    
     cookingUnits: [
       { label: 'g', type: 'solide' },
       { label: 'kg', type: 'solide' },

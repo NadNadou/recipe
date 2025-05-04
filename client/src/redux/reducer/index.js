@@ -8,6 +8,7 @@ import ToDoReducer from './ToDo';
 import UserReducer from './User';
 import RecipeReducer from './Recipe';
 import MetaDataReducer from "./metaData"
+import PlanReducer from "./Plans";
 
 const reducers = combineReducers({
     theme: Theme,
@@ -17,6 +18,7 @@ const reducers = combineReducers({
     toDoReducer: ToDoReducer,
     recipeReducer: RecipeReducer,
     metadataReducer: MetaDataReducer,
+    planReducer:PlanReducer,
     user: UserReducer
 });
 

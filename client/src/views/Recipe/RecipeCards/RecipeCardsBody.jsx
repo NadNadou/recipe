@@ -41,8 +41,6 @@ const RecipeCardsBody = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
 
-
-
     useEffect(() => {
         reduxDispatch(getAllRecipes());
     }, [updateRecipe]);
