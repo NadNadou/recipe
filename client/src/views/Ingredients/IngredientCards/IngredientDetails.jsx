@@ -7,6 +7,8 @@ import { getColorClassForNutrient,getLabelForNutrient } from '../../../utils/nut
 const IngredientDetails = ({ show, onHide, ingredient }) => {
   if (!ingredient) return null;
 
+  console.log({ingredient})
+
   return (
     <Modal show={show} onHide={onHide} centered size="md">
       <Modal.Body className="p-4">
@@ -68,6 +70,21 @@ const IngredientDetails = ({ show, onHide, ingredient }) => {
            <div key={idx}> {unit}</div>
           ))}
         </div>
+
+        {/* Recettes utilisant cet ingrédient */}
+        {ingredient.usedInRecipes?.length > 0 && (
+          <>
+            <h6 className="text-uppercase text-muted mt-4">Utilisé dans les recettes</h6>
+            <ul className="ps-3">
+              {ingredient.usedInRecipes.map((rec, idx) => (
+                <li key={idx}>
+                  <strong>{rec.recipeTitle}</strong>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
       </Modal.Body>
     </Modal>
   );

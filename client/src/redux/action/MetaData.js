@@ -59,9 +59,15 @@ export const deleteIngredient = (id) => async dispatch => {
     await apiIngredients.deleteIngredient(id);
     dispatch({ type: DELETE_INGREDIENT_SUCCESS, payload: id });
   } catch (error) {
-    dispatch({ type: DELETE_INGREDIENT_FAIL, payload: error.message });
+    const message =
+      error.response?.data?.message ||  // message renvoyé par ton backend
+      error.message ||                  // message Axios (fallback)
+      "Erreur inconnue lors de la suppression.";
+
+    dispatch({ type: DELETE_INGREDIENT_FAIL, payload: message });
   }
 };
+
 
 export const getIngredientDetail = (id) => async dispatch => {
     try {

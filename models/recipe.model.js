@@ -22,7 +22,18 @@ const nutritionSchema = new Schema({
   proteins: Number,
   carbs: Number,
   fats: Number,
+
+  caloriesPerPortion: Number,
+  proteinsPerPortion: Number,
+  carbsPerPortion: Number,
+  fatsPerPortion: Number,
+
+  caloriesPer100g: Number,
+  proteinsPer100g: Number,
+  carbsPer100g: Number,
+  fatsPer100g: Number,
 }, { _id: false });
+
 
 const recipeSchema = new Schema(
   {
@@ -60,6 +71,7 @@ const recipeSchema = new Schema(
       type: String,
       default: "",
     },
+    totalWeightInGrams: Number,
   },
   {
     timestamps: true,

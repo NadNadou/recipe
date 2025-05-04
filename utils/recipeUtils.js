@@ -5,6 +5,7 @@
  * @returns {Number} poids total
  */
 
+
 function calculateTotalWeightInGrams(recipeIngredients, ingredientsData) {
     return recipeIngredients.reduce((sum, ing) => {
       const ingredient = ingredientsData.find(i =>

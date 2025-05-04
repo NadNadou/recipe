@@ -6,7 +6,7 @@ const cloudinary = require('cloudinary').v2;
 
 
 const { calculateTotalWeightInGrams } = require('../utils/recipeUtils');
-const { calculateNutritionPerPortionAnd100g } = require("../utils/nutritionUtils");
+const { calculateNutritionPerPortionAnd100g,calculateMacrosFromIngredients} = require("../utils/nutritionUtils");
 
 
 // GET /api/recipes
@@ -73,7 +73,7 @@ exports.getRecipeById = async (req, res) => {
 // POST /api/recipes
 exports.createRecipe = async (req, res) => {
   try {
-    const { title, description, servings, prepTime, cookTime, restTime, steps, tagIds, equipmentIds, recipeIngredients, nutrition } = JSON.parse(req.body.data);
+    const { title, description, servings, prepTime, cookTime, restTime, steps, tagIds, equipmentIds, recipeIngredients } = JSON.parse(req.body.data);
     
     // 🔥 Nouveau traitement ici 🔥
     const updatedRecipeIngredients = await Promise.all(
@@ -130,6 +130,8 @@ exports.createRecipe = async (req, res) => {
     if (req.file && req.file.path) {
       imageUrl = req.file.path;
     }
+
+    const nutrition = await calculateMacrosFromIngredients(updatedRecipeIngredients);
 
     // ✅ Créer la recette
     const newRecipe = new Recipe({
@@ -217,6 +219,9 @@ exports.updateRecipe = async (req, res) => {
       }
     }
     updatedData.recipeIngredients = finalRecipeIngredients;
+
+    const nutrition = await calculateMacrosFromIngredients(updatedData.recipeIngredients);
+    updatedData.nutrition = nutrition;
 
     // 5️⃣ Nettoyer les champs inutiles
     delete updatedData.imageFile;

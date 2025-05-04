@@ -17,7 +17,8 @@ import { getLabelForNutrient ,getColorClassForNutrient} from '../../../utils/nut
 const IngredientCardsBody = () => {
     const reduxDispatch = useDispatch()
 
-    const {ingredients,ingredientDetail} = useSelector(state =>state.metadataReducer)
+    const {ingredients,ingredientDetail,error} = useSelector(state =>state.metadataReducer);
+    const [deleteError, setDeleteError] = useState(null);
 
     useEffect(() => {
         reduxDispatch(getAllIngredients());
@@ -35,12 +36,16 @@ const IngredientCardsBody = () => {
         setShowDeleteModal(true);
       };
 
-    const handleConfirmDelete = () => {
-        reduxDispatch(deleteIngredient(selectedIngredientId));
-        setShowDeleteModal(false);
-    };
-      
-      
+      const handleConfirmDelete = async () => {
+        try {
+          await reduxDispatch(deleteIngredient(selectedIngredientId));
+          setDeleteError(null);              // réinitialise l’erreur
+          setShowDeleteModal(false);        // ferme seulement si OK
+        } catch (err) {
+          setDeleteError("Impossible de supprimer : ingrédient utilisé dans une recette.");
+          // ❌ ne ferme pas la modale ici
+        }
+      };
 
     const [showDetails, setShowDetails] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
@@ -175,9 +180,15 @@ const IngredientCardsBody = () => {
                                             <Dropdown.Item onClick={() => handleShowUpdate(ingredient._id)}>
                                             <i className="icon wb-reply" aria-hidden="true" />Update
                                             </Dropdown.Item>
-                                            <Dropdown.Item onClick={() => handleDeleteClick(ingredient._id)}>
-                                            <i className="icon wb-trash" aria-hidden="true" />Supprimer
+                                            <Dropdown.Item
+                                                onClick={() => handleDeleteClick(ingredient._id)}
+                                                disabled={ingredient.usedInRecipes?.length > 0}
+                                                className={ingredient.usedInRecipes?.length > 0 ? 'text-muted' : ''}
+                                                title={ingredient.usedInRecipes?.length > 0 ? "Cet ingrédient est utilisé dans une ou plusieurs recettes" : ""}
+                                            >
+                                                <i className="icon wb-trash" aria-hidden="true" />Supprimer
                                             </Dropdown.Item>
+
                                         </Dropdown.Menu>
                                         </Dropdown>
                                     </div>
@@ -253,12 +264,17 @@ const IngredientCardsBody = () => {
             </div>
 
             <IngredientDetails show={showDetails} onHide={() => setShowDetails(!showDetails)} ingredient={ingredientDetail} />
-
+            
             <ConfirmDeleteModal
                 show={showDeleteModal}
-                onHide={() => setShowDeleteModal(false)}
+                onHide={() => {
+                    setShowDeleteModal(false);
+                    setDeleteError(null); // reset error when closing
+                }}
                 onConfirm={handleConfirmDelete}
+                errorMessage={deleteError}
             />
+
 
             {showUpdate && (
             <UpdateIngredient
