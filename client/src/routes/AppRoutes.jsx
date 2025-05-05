@@ -18,7 +18,6 @@ const AppRoutes = (props) => {
             }>
             <LayoutHorizontal>
                 <Switch>
-
                 {routes.map((obj, i) => {
                     if (!obj.component) return null;
 

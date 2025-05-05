@@ -7,6 +7,7 @@ const ingredientRoutes = require("./routes/ingredient.routes");
 const tagRoutes = require("./routes/tag.routes");
 const equipmentRoutes = require("./routes/equipment.routes");
 const planRoutes = require("./routes/plan.routes");
+const statsRoutes = require("./routes/states.routes")
 
 const userRoutes = require("./routes/user.routes");
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/tags", tagRoutes);
 app.use("/api/equipments", equipmentRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/stats",statsRoutes)
 
 
 // ✅ Route de test

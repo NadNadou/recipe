@@ -41,7 +41,7 @@ const ClassicRoutes = (props) => {
                                         />) : (null)
                                 })
                             }
-                            {/* <Redirect exact from='/' to='/dashboard' /> */}
+                            <Redirect exact from='/' to='/dashboard' />
                         </Switch>
                     </div>
                 </Suspense>

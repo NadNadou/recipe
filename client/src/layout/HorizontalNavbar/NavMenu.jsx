@@ -9,7 +9,7 @@ export const NavMenu = [
                 name: 'Dashboard',
                 icon: <Icons.Template />,
                 path: '/dashboard',
-                badge: <HkBadge size="sm" bg="pink" soft className="ms-xl-2 ms-auto" >hot</HkBadge>
+                // badge: <HkBadge size="sm" bg="pink" soft className="ms-xl-2 ms-auto" >hot</HkBadge>
             },
         ]
     },
@@ -17,82 +17,11 @@ export const NavMenu = [
         group: 'Apps',
         contents: [
             {
-                id: 'dash_chat',
-                name: 'Chat',
-                icon: <Icons.MessageDots />,
-                path: '/apps/chat',
-                childrens: [
-                    {
-                        name: 'Chats',
-                        path: '/apps/chat/chats',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Groups',
-                        path: '/apps/chat/chat-groups',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Contacts',
-                        path: '/apps/chat/chat-contact',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
-                id: 'dash_chatpop',
-                name: 'Chat Popup',
-                icon: <Icons.MessageCircle />,
-                path: '/apps/chat-bot',
-                childrens: [
-                    {
-                        name: 'Direct Message',
-                        path: '/apps/chat-bot/chatpopup',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Chatbot',
-                        path: '/apps/chat-bot/chatbot',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
                 id: 'dash_chatpop',
                 name: 'Calendar',
                 icon: <Icons.CalendarTime />,
                 path: '/apps/calendar',
                 grp_name: "apps",
-            },
-            {
-                name: 'Email',
-                icon: <Icons.Inbox />,
-                path: '/apps/email',
-                grp_name: "apps",
-            },
-            {
-                id: "dash_scrumboard",
-                name: 'Scrumboard',
-                icon: <Icons.LayoutKanban />,
-                path: '/apps/taskboard',
-                iconBadge: <HkBadge bg="primary" size="sm" pill className="position-top-end-overflow">3</HkBadge>,
-                childrens: [
-                    {
-                        name: 'All Boards',
-                        path: '/apps/taskboard/projects-board',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Project Kanban',
-                        path: '/apps/taskboard/kanban-board',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Pipeline Kanban',
-                        path: '/apps/taskboard/pipeline',
-                        grp_name: "apps",
-                    },
-                ]
             },
             {
                 id: "dash_contact",
@@ -253,14 +182,6 @@ export const NavMenu = [
                         childrens: [
                             {
                                 name: 'Login',
-                                path: '/auth/login',
-                            },
-                            {
-                                name: 'Login Simple',
-                                path: '/auth/login-simple',
-                            },
-                            {
-                                name: 'Login Classic',
                                 path: '/auth/login-classic',
                             },
                         ]
@@ -283,22 +204,6 @@ export const NavMenu = [
                                 path: '/auth/signup-classic',
                             },
                         ]
-                    },
-                    {
-                        name: 'Lock Screen',
-                        path: '/auth/lock-screen',
-                    },
-                    {
-                        name: 'Reset Password',
-                        path: '/auth/reset-password',
-                    },
-                    {
-                        name: 'Error 404',
-                        path: '/error-404',
-                    },
-                    {
-                        name: 'Error 503',
-                        path: '/auth/error-503',
                     },
                 ]
             },

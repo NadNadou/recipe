@@ -9,6 +9,7 @@ import UserReducer from './User';
 import RecipeReducer from './Recipe';
 import MetaDataReducer from "./metaData"
 import PlanReducer from "./Plans";
+import StatsReducer from "./Stats";
 
 const reducers = combineReducers({
     theme: Theme,
@@ -19,6 +20,7 @@ const reducers = combineReducers({
     recipeReducer: RecipeReducer,
     metadataReducer: MetaDataReducer,
     planReducer:PlanReducer,
+    statsReducer:StatsReducer,
     user: UserReducer
 });
 

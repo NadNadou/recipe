@@ -1,5 +1,3 @@
-import AddNewRecipe from "../views/Recipe/CreateNewRecipe"
-
 import AddNewPost from "../views/Blog/AddNewPost";
 import PostDetail from "../views/Blog/PostDetails";
 import Posts from "../views/Blog/Posts";
@@ -53,14 +51,12 @@ export const routes = [
     { path: 'dashboard', exact: true, component: Dashboard,protected:true},
     //Apps
 
-    { path: 'apps/recipe/all', exact: true, component: RecipeCards },
-    { path: 'apps/ingredient/all', exact: true, component: IngredientCards },
+    { path: 'apps/recipe/all', exact: true, component: RecipeCards, protected:true},
+    { path: 'apps/ingredient/all', exact: true, component: IngredientCards, protected:true },
 
     { path: 'apps/chat/chats', exact: true, component: Chats },
     { path: 'apps/chat/chat-groups', exact: true, component: ChatGroups },
     { path: 'apps/chat/chat-contact', exact: true, component: ChatContacts },
-    { path: 'apps/chat-bot/chatpopup', exact: true, component: ChatPopup },
-    { path: 'apps/chat-bot/chatbot', exact: true, component: ChatBot },
     { path: 'apps/calendar', exact: true, component: Calendar },
     { path: 'apps/email', exact: true, component: Email },
     { path: 'apps/taskboard/projects-board', exact: true, component: ProjectsBoard },

@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect} from 'react';
+import {useDispatch, useSelector } from 'react-redux';
 import { Col, Container, Form, InputGroup, Nav, Row, Tab } from 'react-bootstrap';
 import DateRangePicker from 'react-bootstrap-daterangepicker';
 import moment from 'moment';
 import { Calendar } from 'react-feather';
 import ActiveUserCard from './ActiveUserCard';
-import AudienceReviewCard from './AudienceReviewCard';
+import WeeklyRecipePlanner from './WeeklyRecipePlanner';
 import CustomerTable from './CustomerTable';
 import ReturningCustomersCard from './ReturningCustomersCard';
 import { connect } from 'react-redux';
 import { toggleCollapsedNav } from '../../redux/action/Theme';
+import WeeklyCaloriesChart from './ChartData/WeeklyCaloriesChart';
 
 const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
 
@@ -16,6 +18,7 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
         toggleCollapsedNav(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
     return (
         <>
             <Container>
@@ -25,8 +28,7 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                         <div className="d-flex">
                             <div className="d-flex flex-wrap justify-content-between flex-1">
                                 <div className="mb-lg-0 mb-2 me-8">
-                                    <h1 className="pg-title">Welcome back</h1>
-                                    <p>Create pages using a variety of features that leverage jampack components</p>
+                                    <h1 className="pg-title">Recipe planner</h1>
                                 </div>
                                 <div className="pg-header-action-wrap">
                                     <InputGroup className="w-300p">
@@ -61,12 +63,7 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                             </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="demo_nav_1">
-                                    <span className="nav-link-text">Analytics</span>
-                                </Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey="demo_nav_2">
-                                    <span className="nav-link-text">Operations</span>
+                                    <span className="nav-link-text">Other</span>
                                 </Nav.Link>
                             </Nav.Item>
                         </Nav>
@@ -78,7 +75,7 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                             <Tab.Pane eventKey="overview" >
                                 <Row>
                                     <Col xxl={9} lg={8} md={7} className="mb-md-4 mb-3">
-                                        <AudienceReviewCard />
+                                        <WeeklyRecipePlanner />
                                     </Col>
                                     <Col xxl={3} lg={4} md={5} className="mb-md-4 mb-3">
                                         <ReturningCustomersCard />
@@ -86,14 +83,10 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                                 </Row>
                                 <Row>
                                     <Col md={12} className="mb-md-4 mb-3">
-                                        <ActiveUserCard />
+                                        <WeeklyCaloriesChart/>
                                     </Col>
                                 </Row>
-                                <Row>
-                                    <Col md={12} className="mb-md-4 mb-3">
-                                        <CustomerTable />
-                                    </Col>
-                                </Row>
+                               
                             </Tab.Pane>
                             <Tab.Pane eventKey="demo_nav_1" />
                             <Tab.Pane eventKey="demo_nav_2" />
