@@ -4,7 +4,7 @@ import {useDispatch, useSelector } from 'react-redux';
 import { getWeeklyCalories } from '../../../redux/action/Stats';
 import moment from 'moment';
 
-import { Button, ButtonGroup, Card, Col, Form, Row } from 'react-bootstrap';
+import { Card, Col, Form, Row } from 'react-bootstrap';
 import HkBadge from '../../../components/@hk-badge/@hk-badge';
 
 const WeeklyCaloriesChart = () => {
@@ -16,8 +16,8 @@ const WeeklyCaloriesChart = () => {
 
  
     const rawData = useSelector(state => state.statsReducer.weeklyCalories);
+    const { mealTypes } = useSelector((state) => state.metadataReducer);
 
-    const mealTypes = ['Déjeuner','Snack', 'Dîner'];
     const getWeekDays = () => {
         const startOfWeek = moment().startOf('isoWeek'); // lundi
         return Array.from({ length: 7 }, (_, i) => startOfWeek.clone().add(i, 'days'));
@@ -25,17 +25,23 @@ const WeeklyCaloriesChart = () => {
 
     const weekDays = getWeekDays();
 
+    console.log({rawData})
 
       const formattedData = weekDays.map(day => {
         const entry = rawData.find(d => moment(d.date).isSame(day, 'day'));
+
+        console.log({entry})
+
         return {
           date: day.format("YYYY-MM-DD"),
           ...mealTypes.reduce((acc, type) => ({
             ...acc,
-            [type]: entry?.meals?.[type] || 0
+            [type]: entry?.meals?.[type]?.label || 0
           }), {})
         };
       });
+
+      console.log({formattedData})
 
       const categories = formattedData.map(d => moment(d.date).format("ddd")); // ['Mon', 'Tue', ...]
 
@@ -172,7 +178,7 @@ const WeeklyCaloriesChart = () => {
             </Card.Header>
             <Card.Body>
                     
-            <ReactApexChart options={options} series={series} type="bar" height={270} />
+            {/* <ReactApexChart options={options} series={series} type="bar" height={270} /> */}
 
                 <div className="separator-full mt-5" />
                 <div className="flex-grow-1 ms-lg-3">
@@ -184,12 +190,12 @@ const WeeklyCaloriesChart = () => {
                         </div>
                     </Col>
 
-                    {mealTypes.map((type) => (
-                        <Col md={3} sm={6} className="mb-3" key={type}>
-                        <span className="d-block text-muted fs-7">Calories moyennes – {type}</span>
+                    {mealTypes.filter(a=>a.value!="baby").map((type) => (
+                        <Col md={3} sm={6} className="mb-3" key={type.value}>
+                        <span className="d-block text-muted fs-7">Calories moyennes – {type.label}</span>
                         <div className="d-flex align-items-center">
                             <span className="fs-4 fw-semibold text-dark mb-0">
-                            {mealTypeAverages[type]} kcal
+                            {/* {mealTypeAverages[type]} kcal */}
                             </span>
                         </div>
                         </Col>

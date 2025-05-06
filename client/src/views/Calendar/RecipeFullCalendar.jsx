@@ -8,13 +8,15 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPlans, updatePlanDate } from '../../redux/action/Plans';
 import EventsDrawer from './EventsDrawer';
-import CreateNewEvent from './CreateNewEvent';
+import CreateNewRecipe from './CreateNewRecipe';
 
 const RecipeFullCalendar = ({ initialView = "dayGridMonth", height = 500,filter}) => {
   const calendarRef = useRef(null);
   const dispatch = useDispatch();
-  const { plans } = useSelector(state => state.planReducer);
-  const { mealTypes } = useSelector(state => state.metadataReducer);
+  
+  const {plans} = useSelector(state => state.planReducer);
+  const { mealTypes } = useSelector((state) => state.metadataReducer);
+
 
   const [showEventInfo, setShowEventInfo] = useState(false);
   const [eventTitle, setEventTitle] = useState('');
@@ -34,36 +36,41 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", height = 500,filter}
     return true;
   });
 
-  const CalendarEvents = filteredPlans.map(plan => {
-    const recipeTitle = plan.recipeId?.title || "Recette";
-    const recipeNutrition = plan.recipeId?.nutrition || {};
-    const date = plan.date ? plan.date.split('T')[0] : '';
-    const time = getDefaultTime(plan.mealType);
-    const mealConfig = mealTypes.find(type => type.label.toLowerCase() === plan.mealType.toLowerCase());
+    const CalendarEvents = filteredPlans.map((plan) => {
+        const recipeTitle = plan.recipeId?.title || "Recette";
+        const recipePrepTime = plan.recipeId?.prepTime|| 0;
+        const recipeCookTime = plan.recipeId?.cookTime|| 0;
+        const recipeNutrition = plan.recipeId?.nutrition|| {};
+        const recipeServings = plan.recipeId?.servings|| 0;
 
-    return {
-      title: `${plan.mealType} – ${recipeTitle}`,
-      start: `${date}T${time}`,
-      backgroundColor: mealConfig?.backgroundColor || '#ccc',
-      borderColor: mealConfig?.borderColor || '#ccc',
-      extendedProps: {
-        color: mealConfig?.backgroundColor || '#ccc',
-        planId: plan._id,
-        notes: plan.notes,
-        mealType: plan.mealType,
-        servings: plan.servings,
-        date: moment(plan.date).format("DD/MM/YYYY"),
-        recipeTitle,
-        recipeCal: recipeNutrition?.caloriesPer100g,
-        recipeProt: recipeNutrition?.proteinsPer100g,
-        recipeCarbs: recipeNutrition?.carbsPer100g,
-        recipeFats: recipeNutrition?.fatsPer100g,
-        isBatch: !!plan.parentPlanId,
-        recipeCookTime: plan.recipeId?.cookTime,
-        recipePrepTime: plan.recipeId?.prepTime,
-      }
-    };
-  });
+        const date = plan.date ? plan.date.split('T')[0] : '';
+        const time = getDefaultTime(plan.mealType);
+
+        const mealConfig = mealTypes.find(type => type.label.toLowerCase() === plan.mealType.toLowerCase());
+        return {
+            title: `${plan.mealType} – ${recipeTitle}`,
+          start: `${date}T${time}`,
+          backgroundColor: mealConfig?.backgroundColor || '#ccc',
+          borderColor: mealConfig?.borderColor || '#ccc',
+          extendedProps: {
+            color:mealConfig?.backgroundColor || '#ccc',
+            notes: plan.notes,
+            mealType: plan.mealType,
+            recipeId: plan.recipeId?._id,
+            recipeCal:recipeNutrition?.calories,
+            recipeProt:recipeNutrition?.proteins,
+            recipeCarbs:recipeNutrition?.carbs,
+            recipeFats:recipeNutrition?.fats,
+            recipeCookTime:recipeCookTime,
+            recipePrepTime:recipePrepTime,
+            planId: plan._id,
+            recipeTitle: recipeTitle,
+            servings:recipeServings,
+            isBatch:!!plan.parentPlanId,
+            date: moment(plan.date).format("DD/MM/YYYY"),
+          }
+        };
+      });
 
   const handleEventDrop = async (info) => {
     const { event } = info;
@@ -93,6 +100,24 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", height = 500,filter}
         editable={true}
         height={height}
         eventDrop={handleEventDrop}
+        eventContent={function (arg) {
+          const mealShort = arg.event.extendedProps.mealType;
+          const shortLabel = mealTypes.find(m => m.label === mealShort)?.short || '---';
+          const color = arg.event.backgroundColor || '#999';
+        
+          const recipeTitle = arg.event.title.split("–")[1]?.trim() || "Recipe";
+          const shortTitle = recipeTitle.length > 20 ? recipeTitle.slice(0, 17) + '...' : recipeTitle;
+        
+          return {
+            html: `
+              <div style="display: flex; align-items: center; font-size: 0.85em; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                <span style="width: 8px; height: 8px; background-color: ${color}; border-radius: 50%; margin-right: 5px;"></span>
+                <strong>[${shortLabel}]</strong>&nbsp;${shortTitle}
+              </div>
+            `
+          };
+        }}
+        
         eventClick={(info) => {
           setTargetEvent(info.event);
           setEventTitle(info.event._def.title);
@@ -109,7 +134,7 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", height = 500,filter}
         onUpdate={() => dispatch(getAllPlans())}
       />
 
-      <CreateNewEvent calendarRef={calendarRef} show={createEvent} hide={() => setCreateEvent(false)} />
+      <CreateNewRecipe calendarRef={calendarRef} show={createEvent} hide={() => setCreateEvent(false)} />
     </>
   );
 };

@@ -9,7 +9,7 @@ import { fr } from 'date-fns/locale';
 import { getAllRecipes } from '../../redux/action/Recipes';
 import { createPlan } from '../../redux/action/Plans';
 
-const CreateNewEvent = ({ show, hide }) => {
+const CreateNewRecipe = ({ show, hide }) => {
     const dispatch = useDispatch();
 
     const [start, setStart] = useState(new Date());
@@ -64,17 +64,17 @@ const CreateNewEvent = ({ show, hide }) => {
                 </Button>
                 <h5 className="mb-4">Plan new recipe</h5>
                 <Form>
-                <Form.Label>Recette</Form.Label>
+                <Form.Label>Recipe</Form.Label>
                     <Form.Select
                     value={selectedRecipe || ""}
                     onChange={e => setSelectedRecipe(e.target.value)}
                     >
-                    <option value="">-- Choisir une recette --</option>
+                    <option value="">-- Choose a recipe --</option>
                     {recipes?.map((r) => (
                         <option key={r._id} value={r._id}>{r.title}</option>
                     ))}
                     </Form.Select>
-                    <Form.Label className="mt-3">Type de repas</Form.Label>
+                    <Form.Label className="mt-3">Meal type</Form.Label>
                     <Form.Select
                     value={mealType}
                     onChange={e => setMealType(e.target.value)}
@@ -88,7 +88,7 @@ const CreateNewEvent = ({ show, hide }) => {
 
 
                     <Form.Group className="mt-3">
-                        <Form.Label>Nombre de parts</Form.Label>
+                        <Form.Label>Number of servings</Form.Label>
                         <Form.Control
                             type="number"
                             min={1}
@@ -101,9 +101,9 @@ const CreateNewEvent = ({ show, hide }) => {
                     {selectedRecipe && (
                     <div className="mt-3 p-3 bg-light rounded">
                         <p><strong>Calories :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.calories} kcal</p>
-                        <p><strong>Protéines :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.proteins} g</p>
-                        <p><strong>Glucides :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.carbs} g</p>
-                        <p><strong>Lipides :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.fats} g</p>
+                        <p><strong>Proteins :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.proteins} g</p>
+                        <p><strong>Carbs :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.carbs} g</p>
+                        <p><strong>Fats :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.fats} g</p>
                     </div>
                     )}
 
@@ -141,4 +141,4 @@ const CreateNewEvent = ({ show, hide }) => {
     )
 }
 
-export default CreateNewEvent
+export default CreateNewRecipe

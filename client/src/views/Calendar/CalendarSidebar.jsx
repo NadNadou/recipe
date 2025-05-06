@@ -30,14 +30,9 @@ const CalendarSidebar = ({ showSidebar, toggleSidebar, createNewEvent }) => {
                                     <span className="feather-icon dropdown-icon">
                                         <Calendar />
                                     </span>
-                                    <span>Create an Event</span>
+                                    <span>Create a Recipe plan</span>
                                 </Dropdown.Item>
-                                <Dropdown.Item onClick={() => setReminder(!reminder)} >
-                                    <span className="feather-icon dropdown-icon">
-                                        <Bell />
-                                    </span>
-                                    <span>Set a Reminder</span>
-                                </Dropdown.Item>
+                               
                             </Dropdown.Menu>
                         </Dropdown>
                         <div className="text-center mt-4">
@@ -51,8 +46,8 @@ const CalendarSidebar = ({ showSidebar, toggleSidebar, createNewEvent }) => {
                                 />
                             </div>
                         </div>
-                        <div className="separator separator-light" />
-                        <div className="title-sm text-primary">Upcoming Events</div>
+                        {/* <div className="separator separator-light" />
+                        <div className="title-sm text-primary">Upcoming recipes</div>
                         <div className="upcoming-event-wrap">
                             <Nav as="ul" className="nav-light navbar-nav flex-column">
                                 <Nav.Item as="li">
@@ -119,7 +114,7 @@ const CalendarSidebar = ({ showSidebar, toggleSidebar, createNewEvent }) => {
                                 type="checkbox"
                                 label="Conferences"
                             />
-                        </div>
+                        </div> */}
                     </div>
                 </SimpleBar>
                 {/*Sidebar Fixnav*/}

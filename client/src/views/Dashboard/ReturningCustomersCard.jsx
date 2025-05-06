@@ -8,7 +8,7 @@ const ReturningCustomersCard = () => {
     return (
         <Card className="card-border mb-0  h-100">
             <Card.Header className="card-header-action">
-                <h6>Returning Customers</h6>
+                <h6>Grocery list</h6>
                 <div className="card-action-wrap">
                     <Dropdown className="inline-block" >
                         <Dropdown.Toggle variant='transparent' className="btn-icon btn-rounded btn-flush-dark flush-soft-hover no-caret" id="dropdown-basic1">
@@ -29,8 +29,8 @@ const ReturningCustomersCard = () => {
                 </div>
             </Card.Header>
             <Card.Body className="text-center">
-                <ReturningCustomerChart />
-                <div className="d-inline-block mt-4">
+                {/* <ReturningCustomerChart /> */}
+                {/* <div className="d-inline-block mt-4">
                     <div className="mb-4">
                         <span className="d-block badge-status lh-1">
                             <HkBadge bg="primary" className="badge-indicator badge-indicator-nobdr d-inline-block" />
@@ -45,7 +45,7 @@ const ReturningCustomersCard = () => {
                         </span>
                         <span className="d-block text-dark fs-5 fw-medium mb-0 mt-1">$1469</span>
                     </div>
-                </div>
+                </div> */}
             </Card.Body>
         </Card>
     )

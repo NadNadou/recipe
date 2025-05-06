@@ -60,21 +60,21 @@ const CreateNewIngredient = ({ show, close }) => {
   return (
     <Modal show={show} onHide={close} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Nouvel ingrédient</Modal.Title>
+        <Modal.Title>New ingredient</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
           <Form.Group className="mb-3">
-            <Form.Label>Nom</Form.Label>
+            <Form.Label>Name</Form.Label>
             <Form.Control
               value={ingredientData.name}
               onChange={e => handleChange('name', e.target.value)}
-              placeholder="Ex: Farine"
+              placeholder="Ex: Floor"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Unité par défaut</Form.Label>
+            <Form.Label>Default unit</Form.Label>
             <Form.Select
               value={ingredientData.defaultUnit}
               onChange={e => handleChange('defaultUnit', e.target.value)}
@@ -83,7 +83,7 @@ const CreateNewIngredient = ({ show, close }) => {
             </Form.Select>
           </Form.Group>
 
-          <h6>Macronutriments (pour 100g)</h6>
+          <h6>Macronutriments (per 100g)</h6>
           <Row>
             <Col>
               <Form.Group>
@@ -97,7 +97,7 @@ const CreateNewIngredient = ({ show, close }) => {
             </Col>
             <Col>
               <Form.Group>
-                <Form.Label>Protéines</Form.Label>
+                <Form.Label>Proteins</Form.Label>
                 <Form.Control
                   type="number"
                   value={ingredientData.nutritionPer100g.proteins}
@@ -107,7 +107,7 @@ const CreateNewIngredient = ({ show, close }) => {
             </Col>
             <Col>
               <Form.Group>
-                <Form.Label>Glucides</Form.Label>
+                <Form.Label>Carbs</Form.Label>
                 <Form.Control
                   type="number"
                   value={ingredientData.nutritionPer100g.carbs}
@@ -117,7 +117,7 @@ const CreateNewIngredient = ({ show, close }) => {
             </Col>
             <Col>
               <Form.Group>
-                <Form.Label>Lipides</Form.Label>
+                <Form.Label>Fats</Form.Label>
                 <Form.Control
                   type="number"
                   value={ingredientData.nutritionPer100g.fats}
@@ -127,7 +127,7 @@ const CreateNewIngredient = ({ show, close }) => {
             </Col>
           </Row>
 
-          <h6 className="mt-4">Propriétés nutritionnelles</h6>
+          <h6 className="mt-4">Nutritional properties</h6>
           {nutritionalProperties.map((prop, index) => (
             <Form.Check
               key={index}
@@ -141,8 +141,8 @@ const CreateNewIngredient = ({ show, close }) => {
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={close}>Annuler</Button>
-        <Button variant="primary" onClick={handleSubmit}>Créer l'ingrédient</Button>
+        <Button variant="secondary" onClick={close}>Cancel</Button>
+        <Button variant="primary" onClick={handleSubmit}>Create</Button>
       </Modal.Footer>
     </Modal>
   );

@@ -61,6 +61,8 @@ exports.getWeeklyCalories = async (req, res) => {
         },
         { $sort: { date: 1 } }
       ]);
+
+      console.log({stats})
   
       res.status(200).json(stats);
     } catch (error) {

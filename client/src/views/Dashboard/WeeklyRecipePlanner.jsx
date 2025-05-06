@@ -36,7 +36,7 @@ const WeeklyRecipePlanner = () => {
     return (
         <Card className="card-border mb-0 h-100">
             <Card.Header className="card-header-action">
-                <h6>Week overview</h6>
+                <h6>Monthly overview</h6>
                 <div className="card-action-wrap">
                 <ButtonGroup className="d-lg-flex d-none" aria-label="Filter">
                     {['All', 'Babyfood', 'Lunch / diner', 'Snack'].map((label) => (

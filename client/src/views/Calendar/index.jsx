@@ -12,7 +12,7 @@ import moment from 'moment';
 import { useWindowHeight } from '@react-hook/window-size';
 import CalendarSidebar from './CalendarSidebar';
 import EventsDrawer from './EventsDrawer';
-import CreateNewEvent from './CreateNewEvent';
+import CreateNewEvent from './CreateNewRecipe';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 //Redux
 import { connect } from 'react-redux';
@@ -44,9 +44,8 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
 
         const date = plan.date ? plan.date.split('T')[0] : '';
         const time = getDefaultTime(plan.mealType);
-    
-        const mealConfig = mealTypes.find(type => type.label.toLowerCase() === plan.mealType.toLowerCase());
 
+        const mealConfig = mealTypes.find(type => type.label.toLowerCase() === plan.mealType.toLowerCase());
         return {
             title: `${plan.mealType} – ${recipeTitle}`,
           start: `${date}T${time}`,
@@ -57,10 +56,10 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
             notes: plan.notes,
             mealType: plan.mealType,
             recipeId: plan.recipeId?._id,
-            recipeCal:recipeNutrition?.caloriesPer100g,
-            recipeProt:recipeNutrition?.proteinsPer100g,
-            recipeCarbs:recipeNutrition?.carbsPer100g,
-            recipeFats:recipeNutrition?.fatsPer100g,
+            recipeCal:recipeNutrition?.calories,
+            recipeProt:recipeNutrition?.proteins,
+            recipeCarbs:recipeNutrition?.carbs,
+            recipeFats:recipeNutrition?.fats,
             recipeCookTime:recipeCookTime,
             recipePrepTime:recipePrepTime,
             planId: plan._id,
@@ -226,13 +225,26 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
                                 editable={true}
                                 firstDay={1}
                                 events={CalendarEvents}
-                                // eventContent={
-                                //     function (arg) {
-                                //         if (arg.event.extendedProps.toHtml) {
-                                //             return { html: arg.event.title }
-                                //         }
-                                //     }
-                                // }
+                                eventContent={function (arg) {
+                                    const mealShort = arg.event.extendedProps.mealType;
+                                    const shortLabel = mealTypes.find(m => m.label === mealShort)?.short || '---';
+                                    const color = arg.event.backgroundColor || '#999';
+                                  
+                                    const recipeTitle = arg.event.title.split("–")[1]?.trim() || "Recipe";
+                                    const shortTitle = recipeTitle.length > 20 ? recipeTitle.slice(0, 17) + '...' : recipeTitle;
+                                  
+                                    return {
+                                      html: `
+                                        <div style="display: flex; align-items: center; font-size: 0.85em; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                                          <span style="width: 8px; height: 8px; background-color: ${color}; border-radius: 50%; margin-right: 5px;"></span>
+                                          <strong>[${shortLabel}]</strong>&nbsp;${shortTitle}
+                                        </div>
+                                      `
+                                    };
+                                  }}
+                                  
+                                  
+                                  
                                 eventDrop={handleEventDrop}
 
                                 eventClick={function (info) {

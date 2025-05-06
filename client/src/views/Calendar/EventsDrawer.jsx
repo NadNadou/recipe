@@ -158,7 +158,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
                 {servings && (
                 <li>
                     <span className="ev-icon-wrap"><Icons.Users /></span>
-                    Nombre de portions : {servings}
+                    Number of servings : {servings}
                 </li>
                 )}
 
@@ -166,10 +166,10 @@ const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
                 <li>
                     <span className="ev-icon-wrap"><Icons.Activity /></span>
                     <div>
-                    <strong>Macros pour 100g :</strong><br />
-                    🥩 {recipeProt || 0} g protéines<br />
-                    🍞 {recipeCarbs || 0} g glucides<br />
-                    🧈 {recipeFats || 0} g lipides<br />
+                    <strong>Macros per 100g :</strong><br />
+                    🥩 {recipeProt || 0} g proteins<br />
+                    🍞 {recipeCarbs || 0} g carbs<br />
+                    🧈 {recipeFats || 0} g fat<br />
                     🔥 {recipeCal || 0} kcal
                     </div>
                 </li>
@@ -178,13 +178,13 @@ const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
                 {recipePrepTime && (
                   <li>
                     <span className="ev-icon-wrap"><Icons.Tool /></span>
-                    Temps de préparation : {recipePrepTime} min
+                    Preparation time : {recipePrepTime} min
                   </li>
                 )}
                 {recipeCookTime && (
                   <li>
                     <span className="ev-icon-wrap"><Icons.Clock /></span>
-                    Temps de cuisson : {recipeCookTime} min
+                    Cooking time : {recipeCookTime} min
                   </li>
                 )}
                 {notes && (
