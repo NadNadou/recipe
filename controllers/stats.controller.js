@@ -29,8 +29,8 @@ exports.getWeeklyCalories = async (req, res) => {
             mealType: 1,
             calories: {
               $divide: [
-                { $multiply: ['$recipe.nutrition.caloriesPer100g', '$servings'] },
-                1 // <- adapter si portion différente
+                '$recipe.nutrition.calories',  // total calories for the recipe
+                '$recipe.servings'             // -> portion individuelle
               ]
             }
           }
@@ -61,8 +61,6 @@ exports.getWeeklyCalories = async (req, res) => {
         },
         { $sort: { date: 1 } }
       ]);
-
-      console.log({stats})
   
       res.status(200).json(stats);
     } catch (error) {

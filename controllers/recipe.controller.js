@@ -133,6 +133,9 @@ exports.createRecipe = async (req, res) => {
 
     const nutrition = await calculateMacrosFromIngredients(updatedRecipeIngredients);
 
+    const totalWeightInGrams = nutrition.totalWeightInGrams;
+    delete nutrition.totalWeightInGrams;
+
     // ✅ Créer la recette
     const newRecipe = new Recipe({
       title,
@@ -145,6 +148,7 @@ exports.createRecipe = async (req, res) => {
       tagIds: updatedTagIds,
       equipmentIds: updatedEquipmentIds,
       recipeIngredients: updatedRecipeIngredients,
+      totalWeightInGrams,
       nutrition,
       image: imageUrl,
     });

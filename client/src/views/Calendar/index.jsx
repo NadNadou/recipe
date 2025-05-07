@@ -260,7 +260,7 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
             </div>
 
             {/* Event Info */}
-            <EventsDrawer show={showEventInfo} info={eventTitle} event={targetEvent} onClose={() => setShowEventInfo(!showEventInfo)} onUpdate={() => dispatch(getAllPlans())}  />
+            <EventsDrawer show={showEventInfo} info={eventTitle} event={targetEvent} onClose={() => setShowEventInfo(!showEventInfo)} onUpdate={() => dispatch(getAllPlans()) } toDisplay={true}  />
 
             {/* New Event */}
             <CreateNewEvent calendarRef={calendarRef} show={createEvent} hide={() => setCreateEvent(!createEvent)} />

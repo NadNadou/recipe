@@ -12,7 +12,7 @@ import HkBadge from '../../components/@hk-badge/@hk-badge';
 import { useDispatch } from 'react-redux';
 import { deletePlan, updatePlan } from '../../redux/action/Plans';
 
-const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
+const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
   const dispatch = useDispatch();
 
   const [editable, setEditable] = useState(false);
@@ -95,19 +95,19 @@ const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
     <div className={classNames("hk-drawer calendar-drawer drawer-right", { "drawer-toggle": show })}>
       {/* VIEW MODE */}
       <div className={classNames({ "d-none": editable })}>
-        <div className="drawer-header">
+       <div className="drawer-header">
           <div className="drawer-header-action">
-            <Button 
+            {toDisplay &&  <Button 
                 size="sm" 
                 variant="flush-secondary" 
                 className="btn-icon btn-rounded flush-soft-hover"          
                 onClick={() => setEditable(true)}
             >
               <Icons.Edit2 />
-            </Button>
+            </Button>}
 
-            <OverlayTrigger
-                placement="top"
+             {toDisplay && <OverlayTrigger
+                placement="bottom"
                 overlay={
                     <Tooltip>
                     {event?.extendedProps?.isBatch
@@ -128,13 +128,8 @@ const EventsDrawer = ({ show, onClose, event,onUpdate }) => {
                 <Icons.Trash2 />
                 </Button>
             </span>
-            </OverlayTrigger>
+            </OverlayTrigger>}
 
-
-
-            <Button size="sm" variant="flush-secondary" className="btn-icon btn-rounded flush-soft-hover me-2">
-              <Icons.ExternalLink />
-            </Button>
             <Button bsPrefix="btn-close" className="drawer-close" onClick={onClose}>
               <span aria-hidden="true">×</span>
             </Button>

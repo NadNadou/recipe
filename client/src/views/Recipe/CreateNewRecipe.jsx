@@ -254,36 +254,6 @@ const CreateNewRecipe = ({ show, close }) => {
                         <Col sm={4}><Form.Control type="number" placeholder="Repos (min)" onChange={e => handleRecipeChange('restTime', e.target.value)} /></Col>
                     </Row>
 
-                    <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
-                <span>Nutrition</span>
-                </div>
-                <Row className="gx-3">
-                <Col sm={3}>
-                    <Form.Group>
-                    <Form.Label>Calories</Form.Label>
-                    <Form.Control type="number" value={nutrition.calories} onChange={e => handleNutritionChange('calories', e.target.value)} />
-                    </Form.Group>
-                </Col>
-                <Col sm={3}>
-                    <Form.Group>
-                    <Form.Label>Protéines (g)</Form.Label>
-                    <Form.Control type="number" value={nutrition.proteins} onChange={e => handleNutritionChange('proteins', e.target.value)} />
-                    </Form.Group>
-                </Col>
-                <Col sm={3}>
-                    <Form.Group>
-                    <Form.Label>Glucides (g)</Form.Label>
-                    <Form.Control type="number" value={nutrition.carbs} onChange={e => handleNutritionChange('carbs', e.target.value)} />
-                    </Form.Group>
-                </Col>
-                <Col sm={3}>
-                    <Form.Group>
-                    <Form.Label>Lipides (g)</Form.Label>
-                    <Form.Control type="number" value={nutrition.fats} onChange={e => handleNutritionChange('fats', e.target.value)} />
-                    </Form.Group>
-                </Col>
-                </Row>
-
                 <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
                 <span>Équipements</span>
                 </div>

@@ -16,7 +16,8 @@ const WeeklyCaloriesChart = () => {
 
  
     const rawData = useSelector(state => state.statsReducer.weeklyCalories);
-    const { mealTypes } = useSelector((state) => state.metadataReducer);
+    const mealTypesRaw = useSelector((state) => state.metadataReducer.mealTypes);
+    const mealTypes = mealTypesRaw.filter((a) => a.label.toLowerCase() !== "babyfood");
 
     const getWeekDays = () => {
         const startOfWeek = moment().startOf('isoWeek'); // lundi
@@ -25,31 +26,28 @@ const WeeklyCaloriesChart = () => {
 
     const weekDays = getWeekDays();
 
-    console.log({rawData})
-
       const formattedData = weekDays.map(day => {
         const entry = rawData.find(d => moment(d.date).isSame(day, 'day'));
-
-        console.log({entry})
-
         return {
           date: day.format("YYYY-MM-DD"),
           ...mealTypes.reduce((acc, type) => ({
             ...acc,
-            [type]: entry?.meals?.[type]?.label || 0
+            [type.label]: entry?.meals?.[type.label] || 0
           }), {})
+          
         };
       });
 
-      console.log({formattedData})
+
 
       const categories = formattedData.map(d => moment(d.date).format("ddd")); // ['Mon', 'Tue', ...]
 
     
       const series = mealTypes.map(type => ({
-        name: type,
-        data: formattedData.map(d => d[type])
+        name: type.label,
+        data: formattedData.map(d => d[type.label])
       }));
+
   
 
     var options = {
@@ -101,18 +99,21 @@ const WeeklyCaloriesChart = () => {
             }
         },
         yaxis: {
-            labels: {
-                style: {
-                    fontSize: '12px',
-                    fontFamily: 'inherit',
-                },
+          labels: {
+            formatter: (value) => `${Math.round(value)} kcal`,
+            style: {
+              fontSize: '12px',
+              fontFamily: 'inherit',
             },
+          },
             title: {
                 style: {
                     fontSize: '12px',
                     fontFamily: 'inherit',
                 }
             },
+            min: 0,
+            max: 2500,
         },
         legend: {
             show: true,
@@ -165,12 +166,15 @@ const WeeklyCaloriesChart = () => {
     const averageCalories = Math.round(totalCalories / 7);
 
     const mealTypeAverages = mealTypes.reduce((acc, type) => {
-        const total = rawData.reduce((sum, d) => sum + (d.meals?.[type] || 0), 0);
-        return {
-          ...acc,
-          [type]: Math.round(total / 7),
-        };
-      }, {});
+      const total = rawData.reduce((sum, d) => sum + (d.meals?.[type.label] || 0), 0);
+      
+      return {
+        ...acc,
+        [type.label]: Math.round(total / 7),
+      };
+    }, {});
+
+    console.log({mealTypeAverages})
 
     return <Card className="card-border mb-0 h-100">
             <Card.Header className="card-header-action">
@@ -178,7 +182,7 @@ const WeeklyCaloriesChart = () => {
             </Card.Header>
             <Card.Body>
                     
-            {/* <ReactApexChart options={options} series={series} type="bar" height={270} /> */}
+            <ReactApexChart options={options} series={series} type="bar" height={270} />
 
                 <div className="separator-full mt-5" />
                 <div className="flex-grow-1 ms-lg-3">
@@ -190,12 +194,12 @@ const WeeklyCaloriesChart = () => {
                         </div>
                     </Col>
 
-                    {mealTypes.filter(a=>a.value!="baby").map((type) => (
+                    {mealTypes.filter(a=>a.value!="baby" && a.value!="breakfast").map((type) => (
                         <Col md={3} sm={6} className="mb-3" key={type.value}>
                         <span className="d-block text-muted fs-7">Calories moyennes – {type.label}</span>
                         <div className="d-flex align-items-center">
                             <span className="fs-4 fw-semibold text-dark mb-0">
-                            {/* {mealTypeAverages[type]} kcal */}
+                            {mealTypeAverages[type.label]} kcal
                             </span>
                         </div>
                         </Col>
