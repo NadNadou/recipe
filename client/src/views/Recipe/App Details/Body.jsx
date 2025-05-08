@@ -12,13 +12,16 @@ import symbolAvatar4 from '../../../assets/img/symbol-avatar-4.png';
 import symbolAvatar16 from '../../../assets/img/symbol-avatar-16.png';
 
 import { getColorClassForNutrient } from '../../../utils/nutritionUtils';
-import DragCard from './DragCard';
+import DragCard from '../RecipeDetails/DragCard';
 
 
 
 const Body = ({detail}) => {
 
     const [showReviewModal, setShowReviewModal] = useState(false);
+
+    const { cards, tasks, cardOrder } = transformStepsToBoardData(detail?.steps || []);
+
 
     const transformStepsToBoardData = (steps) => {
         const cards = {};
@@ -31,13 +34,7 @@ const Body = ({detail}) => {
       
           step.instructions.forEach((instruction, j) => {
             const taskId = `step-${i}-instruction-${j}`;
-            tasks[taskId] = {
-                id: taskId,
-                content: instruction,
-                completed: false, // par exemple
-                subtasks: [] // si .map() est fait sur ça
-              };
-              
+            tasks[taskId] = { id: taskId, content: instruction };
             taskIds.push(taskId);
           });
       
@@ -53,10 +50,6 @@ const Body = ({detail}) => {
         return { cards, tasks, cardOrder };
       };
       
-
-    const { cards, tasks, cardOrder } = transformStepsToBoardData(detail?.steps || []);
-
-
 
 
 
@@ -153,25 +146,19 @@ const Body = ({detail}) => {
                                         <h5>Description</h5>
                                        
                                         {/* Préparation */}
-                                        {detail.steps.map((step, stepIdx) => (
-                                            <div key={stepIdx} className="mb-4">
-                                                <h6 className="mb-3 mt-2">{step.sectionTitle}</h6>
-                                                {step.instructions.map((instruction, i) => (
-                                                <Card
-                                                    key={i}
-                                                    className="mb-2 d-flex flex-row align-items-center justify-content-between px-3 py-2 shadow-sm"
-                                                >
-                                                    <div className="d-flex align-items-center">
-                                                    <Form.Check type="checkbox" className="me-2" />
-                                                    
-                                                    <span className="text-truncate" style={{ maxWidth: '300px' }}>
-                                                        {instruction}
-                                                    </span>
-                                                    </div>
-                                                </Card>
-                                                ))}
-                                            </div>
-                                        ))}
+                                        <DragCard
+                                            cards={cards}
+                                            tasks={tasks}
+                                            cardOrder={cardOrder}
+                                            setCards={() => {}}
+                                            setTasks={() => {}}
+                                            setCardOrder={() => {}}
+                                            taskInfo={true}
+                                        />
+
+    
+
+
 
                                         </Tab.Pane>
                                         {/* <Tab.Pane eventKey="tabit2">

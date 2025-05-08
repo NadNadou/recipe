@@ -69,7 +69,6 @@ export const routes = [
     { path: 'apps/file-manager/list-view', exact: true, component: ListView },
     { path: 'apps/file-manager/grid-view', exact: true, component: GridView },
     { path: 'apps/gallery', exact: true, component: Gallery },
-    { path: 'apps/todo/task-list', exact: true, component: TaskList },
     { path: 'apps/todo/gantt', exact: true, component: Gantt },
     { path: 'apps/blog/posts', exact: true, component: Posts },
     { path: 'apps/blog/add-new-post', exact: true, component: AddNewPost },

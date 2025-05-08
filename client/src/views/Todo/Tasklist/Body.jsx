@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SimpleBar from 'simplebar-react';
 import { Col, Container, Form, Pagination, Row } from 'react-bootstrap';
 import { DATASET } from './Data';
-import DragCard from './DragCard';
+import DragCard from '../../Recipe/RecipeDetails/DragCard';
 
 const Body = ({ showInfo }) => {
 

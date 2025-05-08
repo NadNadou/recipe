@@ -1,6 +1,6 @@
 import React from 'react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
-import Board from './Board';
+import Board from '../Todo/Tasklist/Board';
 
 const DragCard = ({
     cards,
