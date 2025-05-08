@@ -15,7 +15,7 @@ import GridView from "../views/FileManager/GridView";
 import ListView from "../views/FileManager/ListView";
 import Gallery from "../views/Gallery";
 import AllApps from "../views/Integrations/All Apps";
-import IntegrationsDetail from "../views/Integrations/App Details";
+import RecipeDetail from "../views/Recipe/RecipeDetails";
 import Integration from "../views/Integrations/Integration";
 import CreateInvoice from "../views/Invoices/CreateInvoice";
 import InvoiceList from "../views/Invoices/InvoiceList";
@@ -53,6 +53,7 @@ export const routes = [
 
     { path: 'apps/recipe/all', exact: true, component: RecipeCards, protected:true},
     { path: 'apps/ingredient/all', exact: true, component: IngredientCards, protected:true },
+    { path: 'apps/recipe/detail/:id', exact: true, component: RecipeDetail, protected:true},
 
     { path: 'apps/chat/chats', exact: true, component: Chats },
     { path: 'apps/chat/chat-groups', exact: true, component: ChatGroups },
@@ -78,7 +79,7 @@ export const routes = [
     { path: 'apps/invoices/create-invoice', exact: true, component: CreateInvoice },
     { path: 'apps/invoices/invoice-preview', exact: true, component: PreviewInvoice },
     { path: 'apps/integrations/all-apps', exact: true, component: AllApps },
-    { path: 'apps/integrations/integrations-detail', exact: true, component: IntegrationsDetail },
+
     { path: 'apps/integrations/integration', exact: true, component: Integration },
     //Pages
     { path: 'pages/profile', exact: true, component: Profile },

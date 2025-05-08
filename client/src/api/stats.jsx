@@ -19,6 +19,9 @@ const getAuthHeader = () => {
 // Récupérer toutes les recettes (auth requise)
 const getWeeklyCalories = () => API.get('/weekly-calories', getAuthHeader());
 
+const getWeeklyIngredientsByDay=()=>API.get("/weekly-ingredients", getAuthHeader())
+
 export default {
-    getWeeklyCalories
+    getWeeklyCalories,
+    getWeeklyIngredientsByDay
   };

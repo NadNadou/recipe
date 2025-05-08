@@ -1,4 +1,5 @@
-const RecipePlan = require("../models/recipePlan.model");
+const moment = require('moment');
+const RecipePlan = require('../models/recipePlan.model');
 
 
 exports.getWeeklyCalories = async (req, res) => {
@@ -65,6 +66,59 @@ exports.getWeeklyCalories = async (req, res) => {
       res.status(200).json(stats);
     } catch (error) {
       res.status(500).json({ message: 'Erreur lors de l’agrégation', error: error.message });
+    }
+  };
+
+  exports.getWeeklyIngredientsByDay = async (req, res) => {
+    try {
+      const startOfWeek = moment().startOf('isoWeek').toDate();
+      const endOfWeek = moment().endOf('isoWeek').toDate();
+  
+      const plans = await RecipePlan.find({
+        date: { $gte: startOfWeek, $lte: endOfWeek }
+      }).populate({
+        path: 'recipeId',
+        select: 'recipeIngredients',
+        populate: {
+          path: 'recipeIngredients.ingredientId',
+          select: 'name defaultUnit'
+        }
+      });
+  
+      const dailyIngredientsMap = {};
+  
+      plans.forEach(plan => {
+        const day = moment(plan.date).format('YYYY-MM-DD');
+        const servings = plan.servings || 1;
+        const ingredients = plan.recipeId.recipeIngredients;
+  
+        if (!dailyIngredientsMap[day]) dailyIngredientsMap[day] = {};
+  
+        ingredients.forEach(ri => {
+          const key = ri.ingredientId._id.toString();
+          const quantity = ri.quantity * servings;
+  
+          if (!dailyIngredientsMap[day][key]) {
+            dailyIngredientsMap[day][key] = {
+              name: ri.ingredientId.name,
+              unit: ri.unit,
+              quantity: 0
+            };
+          }
+  
+          dailyIngredientsMap[day][key].quantity += quantity;
+        });
+      });
+  
+      const result = Object.entries(dailyIngredientsMap).map(([date, ingredientsObj]) => ({
+        date,
+        ingredients: Object.values(ingredientsObj)
+      }));
+  
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Erreur lors du calcul des ingrédients par jour' });
     }
   };
   

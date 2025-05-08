@@ -174,8 +174,6 @@ const WeeklyCaloriesChart = () => {
       };
     }, {});
 
-    console.log({mealTypeAverages})
-
     return <Card className="card-border mb-0 h-100">
             <Card.Header className="card-header-action">
                 <h6>Weekly Calories Overview</h6>

@@ -130,6 +130,25 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
             </span>
             </OverlayTrigger>}
 
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id={`tooltip-recipe-link`}>
+                  View full recipe
+                </Tooltip>
+              }
+            >
+              <Button 
+                size="sm" 
+                variant="flush-secondary" 
+                className="btn-icon btn-rounded flush-soft-hover lp-4"
+                onClick={() => window.open(`/apps/recipe/detail/${event.extendedProps.recipeId}`, '_blank')}
+              >
+                <Icons.ExternalLink />
+              </Button>
+            </OverlayTrigger>
+
+
             <Button bsPrefix="btn-close" className="drawer-close" onClick={onClose}>
               <span aria-hidden="true">×</span>
             </Button>
@@ -144,6 +163,8 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
                   <div className="event-name">{recipeTitle || "Recette"}</div>
                   <span>{mealType}</span>
                 </div>
+
+
               </div>
               <ul className="event-detail">
                 <li>

@@ -17,10 +17,6 @@ const RecipeDetails = ({ show, onHide, recipe }) => {
       }
     }, [recipe]);
     
-
-
-        
-
   return (
     <Modal show={show} onHide={onHide} centered size="xl" dialogClassName="recipe-detail-modal">
       <Modal.Body className="p-4">

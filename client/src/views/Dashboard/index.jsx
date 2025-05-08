@@ -7,7 +7,7 @@ import { Calendar } from 'react-feather';
 import ActiveUserCard from './ActiveUserCard';
 import WeeklyRecipePlanner from './WeeklyRecipePlanner';
 import CustomerTable from './CustomerTable';
-import ReturningCustomersCard from './ReturningCustomersCard';
+import DailyGroceryList from './DailyGroceryList';
 import { connect } from 'react-redux';
 import { toggleCollapsedNav } from '../../redux/action/Theme';
 import WeeklyCaloriesChart from './ChartData/WeeklyCaloriesChart';
@@ -78,7 +78,7 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                                         <WeeklyRecipePlanner />
                                     </Col>
                                     <Col xxl={3} lg={4} md={5} className="mb-md-4 mb-3">
-                                        <ReturningCustomersCard />
+                                        <DailyGroceryList />
                                     </Col>
                                 </Row>
                                 <Row>
