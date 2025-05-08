@@ -64,25 +64,25 @@ const WeeklyRecipePlanner = () => {
                 <div className="flex-grow-1 ms-lg-3">
                 <Row>
                     <Col xxl={3} sm={6} className="mb-3">
-                        <span className="d-block fw-medium fs-7">Recettes prévues</span>
+                        <span className="d-block fw-medium fs-7">Planned recipes</span>
                         <div className="d-flex align-items-center">
                         <span className="d-block fs-4 fw-medium text-dark mb-0">{uniqueRecipes.size}</span>
                         </div>
                     </Col>
                     <Col xxl={3} sm={6} className="mb-3">
-                        <span className="d-block fw-medium fs-7">Repas bébé</span>
+                        <span className="d-block fw-medium fs-7">Baby food</span>
                         <div className="d-flex align-items-center">
                         <span className="d-block fs-4 fw-medium text-dark mb-0">{babyMeals}</span>
                         </div>
                     </Col>
                     <Col xxl={3} sm={6} className="mb-3">
-                        <span className="d-block fw-medium fs-7">Durée cuisine estimée</span>
+                        <span className="d-block fw-medium fs-7">Average cooking time</span>
                         <div className="d-flex align-items-center">
                         <span className="d-block fs-4 fw-medium text-dark mb-0">{hours}h {minutes}m</span>
                         </div>
                     </Col>
                     <Col xxl={3} sm={6}>
-                        <span className="d-block fw-medium fs-7">Repas avec restes</span>
+                        <span className="d-block fw-medium fs-7">Meal planned in advance</span>
                         <div className="d-flex align-items-center">
                         <span className="d-block fs-4 fw-medium text-dark mb-0">{batchMeals}</span>
                         </div>

@@ -186,7 +186,7 @@ const WeeklyCaloriesChart = () => {
                 <div className="flex-grow-1 ms-lg-3">
                 <Row>
                     <Col md={3} className="mb-3">
-                        <span className="d-block text-muted fs-7">Calories moyennes (tous repas)</span>
+                        <span className="d-block text-muted fs-7">Av. calories (all meals)</span>
                         <div className="d-flex align-items-center">
                         <span className="fs-4 fw-semibold text-primary mb-0">{averageCalories} kcal</span>
                         </div>
@@ -194,7 +194,7 @@ const WeeklyCaloriesChart = () => {
 
                     {mealTypes.filter(a=>a.value!="baby" && a.value!="breakfast").map((type) => (
                         <Col md={3} sm={6} className="mb-3" key={type.value}>
-                        <span className="d-block text-muted fs-7">Calories moyennes – {type.label}</span>
+                        <span className="d-block text-muted fs-7">Av. calories – {type.label}</span>
                         <div className="d-flex align-items-center">
                             <span className="fs-4 fw-semibold text-dark mb-0">
                             {mealTypeAverages[type.label]} kcal

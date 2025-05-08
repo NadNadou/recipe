@@ -425,8 +425,8 @@ const Body = ({detail}) => {
                                                 <thead>
                                                     <tr>
                                                     <th>Type</th>
-                                                    <th>Par portion</th>
-                                                    <th>Pour 100g</th>
+                                                    <th>Per portion</th>
+                                                    <th>Per 100g</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
