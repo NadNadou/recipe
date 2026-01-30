@@ -67,6 +67,12 @@ const recipeSchema = new Schema(
         ref: "Equipment",
       },
     ],
+    linkedRecipeIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Recipe",
+      },
+    ],
     image: {
       type: String,
       default: "",

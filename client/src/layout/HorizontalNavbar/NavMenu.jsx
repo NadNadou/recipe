@@ -17,152 +17,26 @@ export const NavMenu = [
         group: 'Apps',
         contents: [
             {
-                id: 'dash_chatpop',
-                name: 'Calendar',
+                id: 'dash_plan',
+                name: 'Planification',
                 icon: <Icons.CalendarTime />,
                 path: '/apps/calendar',
                 grp_name: "apps",
             },
             {
-                id: "dash_contact",
-                name: 'Contact',
-                icon: <Icons.Notebook />,
-                path: '/apps/contacts',
-                childrens: [
-                    {
-                        name: 'Contact List',
-                        path: '/apps/contacts/contact-list',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Contact Cards',
-                        path: '/apps/contacts/contact-cards',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Edit Contact',
-                        path: '/apps/contacts/edit-contact',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
-                id: "dash_file",
-                name: 'File Manager',
-                icon: <Icons.FileCheck />,
-                path: '/apps/file-manager',
-                childrens: [
-                    {
-                        name: 'List View',
-                        path: '/apps/file-manager/list-view',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Grid View',
-                        path: '/apps/file-manager/grid-view',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
-                name: 'Gallery',
-                icon: <Icons.Photo />,
-                path: '/apps/gallery',
+                id: 'dash_ingredients',
+                name: 'All ingredients',
+                icon: <Icons.Carrot />,
+                path: '/apps/ingredient/all',
                 grp_name: "apps",
             },
             {
-                id: "dash_task",
-                name: 'Todo',
-                icon: <Icons.ListDetails />,
-                path: '/apps/todo',
-                badge: <HkBadge bg="success" soft className="ms-2">2</HkBadge>,
-                childrens: [
-                    {
-                        name: 'Tasklist',
-                        path: '/apps/todo/task-list',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Gantt',
-                        path: '/apps/todo/gantt',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
-                id: "dash_blog",
-                name: 'Blog',
-                icon: <Icons.Browser />,
-                path: '/apps/blog',
-                childrens: [
-                    {
-                        name: 'Posts',
-                        path: '/apps/blog/posts',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Add New Post',
-                        path: '/apps/blog/add-new-post',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Post Detail',
-                        path: '/apps/blog/post-detail',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
-                id: "dash_invoice",
-                name: 'Invoices',
-                icon: <Icons.FileDigit />,
-                path: '/apps/invoices',
-                childrens: [
-                    {
-                        name: 'Invoice List',
-                        path: '/apps/invoices/invoice-list',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Invoice Templates',
-                        path: '/apps/invoices/invoice-templates',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Create Invoice',
-                        path: '/apps/invoices/create-invoice',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Invoice Preview',
-                        path: '/apps/invoices/invoice-preview',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-            {
-                id: "dash_integ",
-                name: 'Integrations',
-                icon: <Icons.Code />,
-                path: '/apps/integrations',
-                childrens: [
-                    {
-                        name: 'All Apps',
-                        path: '/apps/integrations/all-apps',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'App Detail',
-                        path: '/apps/integrations/integrations-detail',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Integrations',
-                        path: '/apps/integrations/integration',
-                        grp_name: "apps",
-                    },
-                ]
-            },
+                id: 'dash_recipes',
+                name: 'All recipes',
+                icon: <Icons.ChefHat />,
+                path: '/apps/recipe/all',
+                grp_name: "apps",
+            }
         ]
     },
 
@@ -182,7 +56,7 @@ export const NavMenu = [
                         childrens: [
                             {
                                 name: 'Login',
-                                path: '/auth/login-classic',
+                                path: '/auth/login',
                             },
                         ]
                     },
@@ -201,7 +75,7 @@ export const NavMenu = [
                             },
                             {
                                 name: 'Signup Classic',
-                                path: '/auth/signup-classic',
+                                path: '/auth/signup',
                             },
                         ]
                     },

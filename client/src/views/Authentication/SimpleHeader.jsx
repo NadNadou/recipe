@@ -7,7 +7,7 @@ import { Link, useRouteMatch } from 'react-router-dom';
 import logo from '../../assets/img/logo-light.png';
 
 const SimpleHeader = () => {
-    const loginPath = useRouteMatch("/auth/login-simple");
+    const loginPath = useRouteMatch("/auth/login");
     const signupPath = useRouteMatch("/auth/signup-simple");
 
     return (

@@ -86,7 +86,6 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                                         <WeeklyCaloriesChart/>
                                     </Col>
                                 </Row>
-                               
                             </Tab.Pane>
                             <Tab.Pane eventKey="demo_nav_1" />
                             <Tab.Pane eventKey="demo_nav_2" />

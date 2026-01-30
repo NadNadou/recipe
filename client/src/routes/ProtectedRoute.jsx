@@ -12,7 +12,7 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
         token ? (
           <Component {...props} />
         ) : (
-          <Redirect to="/auth/login-simple" />
+          <Redirect to="/auth/login" />
         )
       }
     />

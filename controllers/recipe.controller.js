@@ -15,6 +15,7 @@ exports.getAllRecipes = async (req, res) => {
     const recipes = await Recipe.find()
       .populate("tagIds")
       .populate("equipmentIds")
+      .populate("linkedRecipeIds", "title image _id")
 
     res.status(200).json(recipes);
   } catch (err) {
@@ -28,6 +29,7 @@ exports.getRecipeById = async (req, res) => {
     const recipe = await Recipe.findById(req.params.id)
       .populate("tagIds")
       .populate("equipmentIds")
+      .populate("linkedRecipeIds", "title image _id")
       .populate("recipeIngredients.ingredientId") // pour avoir .name
       .lean();
 
@@ -73,7 +75,7 @@ exports.getRecipeById = async (req, res) => {
 // POST /api/recipes
 exports.createRecipe = async (req, res) => {
   try {
-    const { title, description, servings, prepTime, cookTime, restTime, steps, tagIds, equipmentIds, recipeIngredients } = JSON.parse(req.body.data);
+    const { title, description, servings, prepTime, cookTime, restTime, steps, tagIds, equipmentIds, recipeIngredients, linkedRecipeIds = [] } = JSON.parse(req.body.data);
     
     // 🔥 Nouveau traitement ici 🔥
     const updatedRecipeIngredients = await Promise.all(
@@ -148,6 +150,7 @@ exports.createRecipe = async (req, res) => {
       tagIds: updatedTagIds,
       equipmentIds: updatedEquipmentIds,
       recipeIngredients: updatedRecipeIngredients,
+      linkedRecipeIds,
       totalWeightInGrams,
       nutrition,
       image: imageUrl,
@@ -227,13 +230,18 @@ exports.updateRecipe = async (req, res) => {
     const nutrition = await calculateMacrosFromIngredients(updatedData.recipeIngredients);
     updatedData.nutrition = nutrition;
 
-    // 5️⃣ Nettoyer les champs inutiles
+    // 5️⃣ Traiter les recettes liées
+    if (updatedData.linkedRecipeIds) {
+      updatedData.linkedRecipeIds = updatedData.linkedRecipeIds.filter(id => id && typeof id === 'string');
+    }
+
+    // 6️⃣ Nettoyer les champs inutiles
     delete updatedData.imageFile;
     delete updatedData.createdAt;
     delete updatedData.updatedAt;
     delete updatedData.__v;
 
-    // 6️⃣ Mettre à jour la recette
+    // 7️⃣ Mettre à jour la recette
     const updatedRecipe = await Recipe.findByIdAndUpdate(recipeId, updatedData, { new: true });
 
     res.status(200).json(updatedRecipe);

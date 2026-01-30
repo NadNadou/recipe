@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:back\" \"npm run dev:front\"",
     "dev:back": "nodemon server.js",
-    "dev:front": "npm start --prefix client"
+    "dev:front": "npm start --prefix client",
+  
+    "prod": "concurrently \"npm run prod:back\" \"npm run prod:front\"",
+    "prod:back": "NODE_ENV=production node server.js",
+    "prod:front": "npm run build --prefix client && npm run preview --prefix client"
+
   },
   "keywords": [],
   "author": "",

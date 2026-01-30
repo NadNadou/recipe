@@ -1,6 +1,6 @@
 import React, {useEffect,useState} from 'react';
 import { Modal, Card, Table, Row, Col } from 'react-bootstrap';
-import { Clock, Coffee,Loader} from 'react-feather';
+import { Clock, Coffee, Loader, Link } from 'react-feather';
 import avatar2 from '../../../assets/img/avatar2.jpg';
 import { getColorClassForNutrient } from '../../../utils/nutritionUtils';
 
@@ -69,7 +69,7 @@ const RecipeDetails = ({ show, onHide, recipe }) => {
     {recipe.recipeIngredients?.map((ing, i) => {
       const baseQuantity = ing.quantity || 0;
       const baseServings = recipe.servings || 1;
-      const adjustedQuantity = ((baseQuantity * portionCount) / baseServings).toFixed(2);
+      const adjustedQuantity = ((baseQuantity * portionCount) / baseServings) % 1 === 0 ? ((baseQuantity * portionCount) / baseServings) : ((baseQuantity * portionCount) / baseServings).toFixed(2);
 
       return (
         <li key={i}>
@@ -171,6 +171,43 @@ const RecipeDetails = ({ show, onHide, recipe }) => {
             </Card>
           </Col>
         </Row>
+
+        {/* Recettes liées */}
+        {recipe.linkedRecipeIds && recipe.linkedRecipeIds.length > 0 && (
+          <Row>
+            <Col md={12}>
+              <Card className="mb-4">
+                <Card.Header className="fw-bold fs-6">
+                  <Link size={16} className="me-2" />
+                  Recettes liées
+                </Card.Header>
+                <Card.Body>
+                  <div className="d-flex flex-wrap gap-3">
+                    {recipe.linkedRecipeIds.map((linkedRecipe, i) => (
+                      <a
+                        key={i}
+                        href={`/apps/recipe/detail/${linkedRecipe._id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="d-flex align-items-center gap-2 p-2 border rounded text-decoration-none text-dark"
+                        style={{ cursor: 'pointer', minWidth: '200px', transition: 'background-color 0.2s' }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <img
+                          src={linkedRecipe.image || avatar2}
+                          alt={linkedRecipe.title}
+                          style={{ width: 50, height: 50, borderRadius: 8, objectFit: 'cover' }}
+                        />
+                        <span className="fw-medium">{linkedRecipe.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        )}
       </Modal.Body>
     </Modal>
   );

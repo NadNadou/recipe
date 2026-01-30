@@ -50,11 +50,8 @@ const TopNav = ({ navCollapsed, toggleCollapsedNav }) => {
 
 const handleLogout = () => {
   logout();
-  history.push('/auth/login-simple'); // ou autre route de login
+  history.push('/auth/login'); // ou autre route de login
 };
-
-
-
 
     return (
         <Navbar expand="xl" className="hk-navbar navbar-light fixed-top" >
@@ -176,24 +173,6 @@ const handleLogout = () => {
                                                         <div className="notifications-text">Application of Sarah Williams is waiting for your approval</div>
                                                         <div className="notifications-info">
                                                             <div className="notifications-time">Today 10:14 PM</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Dropdown.Item>
-                                        <Dropdown.Item>
-                                            <div className="media">
-                                                <div className="media-head">
-                                                    <div className="avatar avatar-sm avatar-rounded">
-                                                        <img src={avatar10} alt="user" className="avatar-img" />
-                                                    </div>
-                                                </div>
-                                                <div className="media-body">
-                                                    <div>
-                                                        <div className="notifications-text">Winston Churchil shared a document with you</div>
-                                                        <div className="notifications-info">
-                                                            <HkBadge bg="violet" soft >File Manager</HkBadge>
-                                                            <div className="notifications-time">2 Oct, 2021</div>
                                                         </div>
                                                     </div>
                                                 </div>

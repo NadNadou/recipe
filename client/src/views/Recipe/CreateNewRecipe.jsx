@@ -2,9 +2,10 @@ import React, { useState,useEffect } from 'react';
 import { Button, Col, Form, Modal, Row } from 'react-bootstrap';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { createRecipe } from '../../redux/action/Recipes';
+import { createRecipe, getAllRecipes } from '../../redux/action/Recipes';
 import {getAllIngredients,getAllEquipments,getAllTags,createTag} from "../../redux/action/MetaData"
 import { createIngredient,createEquipment } from '../../redux/action/MetaData';
+import { Link } from 'react-feather';
 
 const CreateNewRecipe = ({ show, close }) => {
     const dispatch = useDispatch();
@@ -12,16 +13,19 @@ const CreateNewRecipe = ({ show, close }) => {
     const [availableIngredients, setAvailableIngredients] = useState([]);
     const [availableEquipments, setAvailableEquipments] = useState([]);
     const [availableTags, setAvailableTags] = useState([]);
-  
+    const [availableRecipes, setAvailableRecipes] = useState([]);
+
     const ingredientsFromStore = useSelector(state => state.metadataReducer.ingredients);
     const equipmentsFromStore = useSelector(state => state.metadataReducer.equipments);
     const tagsFromStore = useSelector(state => state.metadataReducer.tags);
     const cookingUnits = useSelector(state=> state.metadataReducer.cookingUnits);
+    const recipesFromStore = useSelector(state => state.recipeReducer.recipes);
 
     useEffect(() => {
         dispatch(getAllIngredients());
         dispatch(getAllEquipments());
         dispatch(getAllTags());
+        dispatch(getAllRecipes());
       }, []);
     
 
@@ -29,7 +33,8 @@ const CreateNewRecipe = ({ show, close }) => {
         setAvailableIngredients(ingredientsFromStore || []);
         setAvailableEquipments(equipmentsFromStore || []);
         setAvailableTags(tagsFromStore || []);
-      }, [ingredientsFromStore, equipmentsFromStore, tagsFromStore]);
+        setAvailableRecipes(recipesFromStore || []);
+      }, [ingredientsFromStore, equipmentsFromStore, tagsFromStore, recipesFromStore]);
 
 
     const [recipeIngredients, setRecipeIngredients] = useState([
@@ -53,7 +58,8 @@ const CreateNewRecipe = ({ show, close }) => {
         restTime: 0,
         image: '',
         tagIds: [],
-        equipmentIds: []
+        equipmentIds: [],
+        linkedRecipeIds: []
     });
 
     const [steps, setSteps] = useState([
@@ -134,8 +140,16 @@ const CreateNewRecipe = ({ show, close }) => {
           .filter((_, i) => i !== currentIndex)
           .map(tag => typeof tag === 'object' ? null : tag)
           .filter(id => id); // ignore les objets ou valeurs nulles
-      
+
         return availableTags.filter(tag => !selectedIds.includes(tag._id));
+      };
+
+      const getFilteredLinkedRecipes = (currentIndex) => {
+        const selectedIds = recipeData.linkedRecipeIds
+          .filter((_, i) => i !== currentIndex)
+          .filter(id => id);
+
+        return availableRecipes.filter(recipe => !selectedIds.includes(recipe._id));
       };
       
       const handleSubmit = async () => {
@@ -143,6 +157,7 @@ const CreateNewRecipe = ({ show, close }) => {
           ...recipeData,
           tagIds: recipeData.tagIds,
           equipmentIds: recipeData.equipmentIds,
+          linkedRecipeIds: recipeData.linkedRecipeIds.filter(id => id),
           steps,
           nutrition,
           recipeIngredients
@@ -174,6 +189,7 @@ const CreateNewRecipe = ({ show, close }) => {
             imageFile: null,
             tagIds: [],
             equipmentIds: [],
+            linkedRecipeIds: [],
         });
         setRecipeIngredients([{ ingredientId: '', quantity: '', unit: '', isNew: false, newName: '' }]);
         setNutrition({ calories: 0, proteins: 0, carbs: 0, fats: 0 });
@@ -478,6 +494,49 @@ const CreateNewRecipe = ({ show, close }) => {
                     handleRecipeChange('tagIds', [...recipeData.tagIds, '']);
                     }}>
                     + Ajouter un tag
+                    </Button>
+
+
+                    <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+                        <span><Link size={14} className="me-1" />Recettes liées</span>
+                    </div>
+
+                    {recipeData.linkedRecipeIds.map((linkedRecipeId, index) => (
+                    <Row className="gx-2 mb-2" key={index}>
+                        <Col sm={10}>
+                        <Form.Select
+                            value={linkedRecipeId}
+                            onChange={e => {
+                                const updated = [...recipeData.linkedRecipeIds];
+                                updated[index] = e.target.value;
+                                handleRecipeChange('linkedRecipeIds', updated);
+                            }}
+                        >
+                            <option value="">-- Sélectionner une recette --</option>
+                            {getFilteredLinkedRecipes(index).map(recipe => (
+                                <option key={recipe._id} value={recipe._id}>{recipe.title}</option>
+                            ))}
+                        </Form.Select>
+                        </Col>
+                        <Col sm={2}>
+                        <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => {
+                                const updated = recipeData.linkedRecipeIds.filter((_, i) => i !== index);
+                                handleRecipeChange('linkedRecipeIds', updated);
+                            }}
+                        >
+                            ✕
+                        </Button>
+                        </Col>
+                    </Row>
+                    ))}
+
+                    <Button variant="outline-secondary" size="sm" onClick={() => {
+                        handleRecipeChange('linkedRecipeIds', [...recipeData.linkedRecipeIds, '']);
+                    }}>
+                    + Ajouter une recette liée
                     </Button>
 
 

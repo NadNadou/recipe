@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { AnimatePresence } from 'framer-motion'
 import React, { Suspense } from 'react'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { Route, Switch, Redirect, useRouteMatch } from 'react-router-dom'
 import PageAnimate from '../components/Animation/PageAnimate'
 import { authRoutes } from './RouteList'
 

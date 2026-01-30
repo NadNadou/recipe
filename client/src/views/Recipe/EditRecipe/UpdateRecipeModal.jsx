@@ -6,7 +6,8 @@ import {
   getAllEquipments,
   getAllTags,
 } from '../../../redux/action/MetaData';
-import { updateRecipe, getRecipeDetail } from '../../../redux/action/Recipes';
+import { updateRecipe, getRecipeDetail, getAllRecipes } from '../../../redux/action/Recipes';
+import { Link } from 'react-feather';
 
 const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
   const dispatch = useDispatch();
@@ -15,7 +16,7 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
     state => state.metadataReducer
   );
 
-  const { recipeDetail } = useSelector(state => state.recipeReducer);
+  const { recipeDetail, recipes } = useSelector(state => state.recipeReducer);
 
   const [recipeData, setRecipeData] = useState(null);
 
@@ -23,6 +24,7 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
     dispatch(getAllIngredients());
     dispatch(getAllEquipments());
     dispatch(getAllTags());
+    dispatch(getAllRecipes());
   }, []);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
     if (recipeDetail && recipeDetail._id === recipeId) {
       setRecipeData({
         ...recipeDetail,
+        linkedRecipeIds: recipeDetail.linkedRecipeIds?.map(r => r._id || r) || [],
         imageFile: null,
         imagePreview: recipeDetail.image || '',
       });
@@ -114,7 +117,10 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
       }
       return eq._id; // cas normal
     });
-  
+
+    // Filtrer les recettes liées valides
+    payload.linkedRecipeIds = (payload.linkedRecipeIds || []).filter(id => id && typeof id === 'string');
+
     formData.append('data', JSON.stringify(payload));
   
     if (recipeData.imageFile) {
@@ -721,6 +727,59 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
             >
               + Ajouter une étape
             </Button>
+
+          <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+            <span><Link size={14} className="me-1" />Recettes liées</span>
+          </div>
+
+          <Form.Group className="mb-3">
+            <div className="d-flex flex-wrap gap-2 mb-3">
+              {recipeData.linkedRecipeIds?.map((linkedId, index) => {
+                const linkedRecipe = recipes.find(r => r._id === linkedId);
+                if (!linkedRecipe) return null;
+                return (
+                  <span key={linkedId} className="badge bg-info d-flex align-items-center">
+                    {linkedRecipe.title}
+                    <Button
+                      size="sm"
+                      variant="link"
+                      className="text-white p-0 ps-2"
+                      onClick={() =>
+                        setRecipeData(prev => ({
+                          ...prev,
+                          linkedRecipeIds: prev.linkedRecipeIds.filter((_, i) => i !== index),
+                        }))
+                      }
+                    >
+                      ✕
+                    </Button>
+                  </span>
+                );
+              })}
+            </div>
+
+            <Form.Select
+              value=""
+              onChange={e => {
+                const selectedId = e.target.value;
+                if (selectedId && !recipeData.linkedRecipeIds?.includes(selectedId)) {
+                  setRecipeData(prev => ({
+                    ...prev,
+                    linkedRecipeIds: [...(prev.linkedRecipeIds || []), selectedId],
+                  }));
+                }
+              }}
+            >
+              <option value="">-- Ajouter une recette liée --</option>
+              {recipes
+                .filter(r => r._id !== recipeId && !recipeData.linkedRecipeIds?.includes(r._id))
+                .map(r => (
+                  <option key={r._id} value={r._id}>
+                    {r.title}
+                  </option>
+                ))}
+            </Form.Select>
+          </Form.Group>
 
         </Form>
       </Modal.Body>

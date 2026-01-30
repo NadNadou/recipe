@@ -58,11 +58,7 @@ const Account = ({ toggleCollapsedNav }) => {
                                 <span className="nav-link-text">Social Profiles</span>
                             </Nav.Link>
                         </Nav.Item>
-                        <Nav.Item>
-                            <Nav.Link eventKey="tabBlock3">
-                                <span className="nav-link-text">Integrations</span>
-                            </Nav.Link>
-                        </Nav.Item>
+                
                         <Nav.Item as={Dropdown} >
                             <Dropdown.Toggle as={Nav.Link} >Billing Info</Dropdown.Toggle>
                             <Dropdown.Menu>

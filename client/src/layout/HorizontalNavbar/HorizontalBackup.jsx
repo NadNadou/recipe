@@ -135,21 +135,7 @@ const HorizontalNav = () => {
                                     </Nav.Link>
                                 </Nav.Item>
                                 <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/taskboard" data-bs-toggle="collapse" data-bs-target="#dash_scrumboard">
-                                        <span className="nav-icon-wrap position-relative">
-                                            <span className="badge badge-sm badge-primary badge-sm badge-pill position-top-end-overflow">3</span>
-                                            <span className="svg-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-layout-kanban" width={24} height={24} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                    <line x1={4} y1={4} x2={10} y2={4} />
-                                                    <line x1={14} y1={4} x2={20} y2={4} />
-                                                    <rect x={4} y={8} width={6} height={12} rx={2} />
-                                                    <rect x={14} y={8} width={6} height={6} rx={2} />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Scrumboard</span>
-                                    </Nav.Link>
+                            
                                     <Nav as="ul" id="dash_scrumboard" className="flex-column collapse   nav-children">
                                         <Nav.Item as="li">
                                             <Nav as="ul" className="flex-column">
@@ -196,11 +182,6 @@ const HorizontalNav = () => {
                                         <Nav.Item as="li">
                                             <Nav as="ul" className="nav flex-column">
                                                 <Nav.Item as="li">
-                                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/contacts/contact-list">
-                                                        <span className="nav-link-text">Contact List</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
                                                     <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/contacts/contact-cards">
                                                         <span className="nav-link-text">Contact Cards</span>
                                                     </Nav.Link>
@@ -215,24 +196,6 @@ const HorizontalNav = () => {
                                     </Nav>
                                 </Nav.Item>
                                 <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/todo" data-bs-toggle="collapse" data-bs-target="#dash_task">
-                                        <span className="nav-icon-wrap">
-                                            <span className="svg-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-list-details" width={24} height={24} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                    <path d="M13 5h8" />
-                                                    <path d="M13 9h5" />
-                                                    <path d="M13 15h8" />
-                                                    <path d="M13 19h5" />
-                                                    <rect x={3} y={4} width={6} height={6} rx={1} />
-                                                    <rect x={3} y={14} width={6} height={6} rx={1} />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text position-relative">Todo
-                                            <span className="badge badge-danger badge-indicator position-absolute top-0 start-100" />
-                                        </span>
-                                    </Nav.Link>
                                     <Nav as="ul" id="dash_task" className="flex-column collapse   nav-children">
                                         <Nav.Item as="li">
                                             <Nav as="ul" className="flex-column">
@@ -247,20 +210,6 @@ const HorizontalNav = () => {
                                     </Nav>
                                 </Nav.Item>
                                 <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/invoices" data-bs-toggle="collapse" data-bs-target="#dash_invoice">
-                                        <span className="nav-icon-wrap">
-                                            <span className="svg-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-file-digit" width={24} height={24} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                                                    <rect x={9} y={12} width={3} height={5} rx={1} />
-                                                    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
-                                                    <path d="M15 12v5" />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Invoices</span>
-                                    </Nav.Link>
                                     <Nav as="ul" id="dash_invoice" className="nav flex-column collapse   nav-children">
                                         <Nav.Item as="li">
                                             <ul className="nav flex-column">
@@ -303,63 +252,10 @@ const HorizontalNav = () => {
                                                 </svg>
                                             </span>
                                         </span>
-                                        <span className="nav-link-text">Calendar</span>
+                                        <span className="nav-link-text">Planification</span>
                                     </Nav.Link>
                                 </Nav.Item>
                                 <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/file-manager" data-bs-toggle="collapse" data-bs-target="#dash_file">
-                                        <span className="nav-icon-wrap"><span className="feather-icon">
-                                            <FileText />
-                                        </span></span>
-                                        <span className="nav-link-text">File Manager</span>
-                                    </Nav.Link>
-                                    <Nav as="ul" id="dash_file" className="flex-column collapse  nav-children">
-                                        <Nav.Item as="li">
-                                            <Nav as="ul" className="nav flex-column">
-                                                <Nav.Item as="li">
-                                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/file-manager/list-view" onClick={e => e.preventDefault()} >
-                                                        <span className="nav-link-text">List View</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
-                                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/file-manager/grid-view">
-                                                        <span className="nav-link-text">Grid View</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                            </Nav>
-                                        </Nav.Item>
-                                    </Nav>
-                                </Nav.Item>
-                                <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/gallery" >
-                                        <span className="nav-icon-wrap">
-                                            <span className="svg-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-photo" width={24} height={24} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                    <line x1={15} y1={8} x2="15.01" y2={8} />
-                                                    <rect x={4} y={4} width={16} height={16} rx={3} />
-                                                    <path d="M4 15l4 -4a3 5 0 0 1 3 0l5 5" />
-                                                    <path d="M14 14l1 -1a3 5 0 0 1 3 0l2 2" />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Gallery</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/blog" data-bs-toggle="collapse" data-bs-target="#dash_blog">
-                                        <span className="nav-icon-wrap">
-                                            <span className="svg-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-browser" width={24} height={24} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                    <rect x={4} y={4} width={16} height={16} rx={1} />
-                                                    <line x1={4} y1={8} x2={20} y2={8} />
-                                                    <line x1={8} y1={4} x2={8} y2={8} />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Blog</span>
-                                    </Nav.Link>
                                     <Nav as="ul" id="dash_blog" className="flex-column collapse  nav-children">
                                         <Nav.Item as="li">
                                             <Nav as="ul" className="flex-column">
@@ -383,40 +279,6 @@ const HorizontalNav = () => {
                                     </Nav>
                                 </Nav.Item>
                                 <Nav.Item as="li">
-                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/integrations" data-bs-toggle="collapse" data-bs-target="#dash_integ">
-                                        <span className="nav-icon-wrap">
-                                            <span className="svg-icon">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-code" width={24} height={24} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                    <polyline points="7 8 3 12 7 16" />
-                                                    <polyline points="17 8 21 12 17 16" />
-                                                    <line x1={14} y1={4} x2={10} y2={20} />
-                                                </svg>
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Integrations</span>
-                                    </Nav.Link>
-                                    <Nav as="ul" id="dash_integ" className="flex-column collapse  nav-children">
-                                        <Nav.Item as="li">
-                                            <Nav as="ul" className="flex-column">
-                                                <Nav.Item as="li">
-                                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/integrations/all-apps">
-                                                        <span className="nav-link-text">All Apps</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
-                                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/integrations/integrations-detail">
-                                                        <span className="nav-link-text">App Detail</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
-                                                    <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/apps/integrations/integration">
-                                                        <span className="nav-link-text">Integrations</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                            </Nav>
-                                        </Nav.Item>
-                                    </Nav>
                                 </Nav.Item>
                                 <Nav.Item as="li">
                                     <Nav.Link as={NavLink} activeClassName="active" to="/horizontal/auth" data-bs-toggle="collapse" data-bs-target="#dash_pages">
@@ -447,16 +309,6 @@ const HorizontalNav = () => {
                                                                         <span className="nav-link-text">Login</span>
                                                                     </Nav.Link>
                                                                 </Nav.Item>
-                                                                <Nav.Item as="li">
-                                                                    <Nav.Link as={NavLink} activeClassName="active" to="/auth/login-simple">
-                                                                        <span className="nav-link-text">Login Simple</span>
-                                                                    </Nav.Link>
-                                                                </Nav.Item>
-                                                                <Nav.Item as="li">
-                                                                    <Nav.Link as={NavLink} activeClassName="active" to="/auth/login-classic">
-                                                                        <span className="nav-link-text">Login Classic</span>
-                                                                    </Nav.Link>
-                                                                </Nav.Item>
                                                             </Nav>
                                                         </Nav.Item>
                                                     </Nav>
@@ -470,16 +322,6 @@ const HorizontalNav = () => {
                                                             <Nav as="ul" className="flex-column">
                                                                 <Nav.Item as="li">
                                                                     <Nav.Link as={NavLink} activeClassName="active" to="/auth/signup">
-                                                                        <span className="nav-link-text">Signup</span>
-                                                                    </Nav.Link>
-                                                                </Nav.Item>
-                                                                <Nav.Item as="li">
-                                                                    <Nav.Link as={NavLink} activeClassName="active" to="/auth/signup-simple">
-                                                                        <span className="nav-link-text">Signup Simple</span>
-                                                                    </Nav.Link>
-                                                                </Nav.Item>
-                                                                <Nav.Item as="li">
-                                                                    <Nav.Link as={NavLink} activeClassName="active" to="/auth/signup-classic">
                                                                         <span className="nav-link-text">Signup Classic</span>
                                                                     </Nav.Link>
                                                                 </Nav.Item>
