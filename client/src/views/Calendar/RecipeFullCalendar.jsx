@@ -10,7 +10,7 @@ import { getAllPlans, updatePlanDate } from '../../redux/action/Plans';
 import EventsDrawer from './EventsDrawer';
 import { useWindowHeight } from '@react-hook/window-size';
 
-const RecipeFullCalendar = ({ initialView = "dayGridMonth", filter }) => {
+const RecipeFullCalendar = ({ initialView = "dayGridMonth", filter, twoWeekView = false, enableEdit = false }) => {
   const calendarRef = useRef(null);
   const dispatch = useDispatch();
 
@@ -34,9 +34,10 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", filter }) => {
   const filteredPlans = useMemo(() => {
     return plans.filter(plan => {
       if (filter === 'All') return true;
+      if (filter === 'Meals') return ['Breakfast', 'Lunch', 'Dinner'].includes(plan.mealType);
+      if (filter === 'Lunchbox') return plan.mealType === 'Lunchbox';
       if (filter === 'Babyfood') return plan.mealType === 'Babyfood';
-      if (filter === 'Snack') return plan.mealType === 'Snack';
-      if (filter === 'Lunch / diner') return ['Lunch', 'Dinner'].includes(plan.mealType);
+      if (filter === 'Batch') return plan.isBatchCooked === true;
       return true;
     });
   }, [plans, filter]);
@@ -98,9 +99,26 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", filter }) => {
 
 
   /* ----------------------------
-      4. Height
+      4. Height & Date Range
   -----------------------------*/
   const calendarHeight = useWindowHeight() - 130;
+
+  // Calculate valid range based on view mode (4 weeks for dashboard)
+  const validRange = useMemo(() => {
+    if (twoWeekView) {
+      return {
+        start: moment().format('YYYY-MM-DD'),
+        end: moment().add(28, 'days').format('YYYY-MM-DD') // 4 weeks
+      };
+    }
+    return {
+      start: moment().startOf('month').format('YYYY-MM-DD'),
+      end: moment().endOf('month').format('YYYY-MM-DD')
+    };
+  }, [twoWeekView]);
+
+  // Use 4-week view if twoWeekView prop is true
+  const effectiveInitialView = twoWeekView ? 'dayGridWeek' : initialView;
 
   /* ----------------------------
       5. Custom event content
@@ -136,19 +154,24 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", filter }) => {
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-        initialView={initialView}
+        initialView={effectiveInitialView}
+        initialDate={twoWeekView ? moment().format('YYYY-MM-DD') : undefined}
         headerToolbar={false}
-        showNonCurrentDates={false}
+        showNonCurrentDates={twoWeekView}
         themeSystem="bootstrap"
         height={calendarHeight}
         windowResizeDelay={400}
         droppable={true}
         editable={true}
         firstDay={1}
-        validRange={{
-          start: moment().startOf('month').format('YYYY-MM-DD'),
-          end: moment().endOf('month').format('YYYY-MM-DD')
-        }}
+        validRange={validRange}
+        views={twoWeekView ? {
+          dayGridWeek: {
+            type: 'dayGrid',
+            duration: { weeks: 4 },
+            buttonText: '4 weeks'
+          }
+        } : undefined}
         events={CalendarEvents}
         eventContent={renderEventContent}
         eventDrop={handleEventDrop}
@@ -165,7 +188,7 @@ const RecipeFullCalendar = ({ initialView = "dayGridMonth", filter }) => {
         event={targetEvent}
         onClose={() => setShowEventInfo(false)}
         onUpdate={() => dispatch(getAllPlans())}
-        toDisplay={false}
+        toDisplay={enableEdit}
       />
     </>
   );

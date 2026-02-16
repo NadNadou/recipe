@@ -30,10 +30,30 @@ const updateIngredient = (id, data) => API.put(`/${id}`, data, getAuthHeader());
 // Supprimer un ingrédient
 const deleteIngredient = (id) => API.delete(`/${id}`, getAuthHeader());
 
+// Enrichir un ingrédient avec OpenFoodFacts
+const enrichIngredient = (id, searchTerm = null) =>
+  API.post(`/${id}/enrich`, searchTerm ? { searchTerm } : {}, getAuthHeader());
+
+// Enrichir tous les ingrédients
+const enrichAllIngredients = (overwrite = false) =>
+  API.post('/enrich-all', { overwrite }, getAuthHeader());
+
+// Rechercher les données nutritionnelles (preview sans sauvegarder)
+const searchNutrition = (searchTerm) =>
+  API.post('/search-nutrition', { searchTerm }, getAuthHeader());
+
+// Rechercher plusieurs résultats nutritionnels (sélection UI)
+const searchNutritionMultiple = (searchTerm) =>
+  API.post('/search-nutrition-multiple', { searchTerm }, getAuthHeader());
+
 export default {
   getIngredients,
   getIngredient,
   createIngredient,
   updateIngredient,
   deleteIngredient,
+  enrichIngredient,
+  enrichAllIngredients,
+  searchNutrition,
+  searchNutritionMultiple,
 };

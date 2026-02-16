@@ -17,10 +17,17 @@ export const NavMenu = [
         group: 'Apps',
         contents: [
             {
-                id: 'dash_plan',
-                name: 'Planification',
-                icon: <Icons.CalendarTime />,
-                path: '/apps/calendar',
+                id: 'dash_meal_planner',
+                name: 'Week Planner',
+                icon: <Icons.Calendar />,
+                path: '/apps/meal-planner',
+                grp_name: "apps",
+            },
+            {
+                id: 'dash_cooking_session',
+                name: 'Cooking Session',
+                icon: <Icons.Flame />,
+                path: '/apps/cooking-session',
                 grp_name: "apps",
             },
             {
@@ -38,90 +45,5 @@ export const NavMenu = [
                 grp_name: "apps",
             }
         ]
-    },
-
-    {
-        group: 'Pages',
-        contents: [
-            {
-                id: "dash_pages",
-                name: 'Authentication',
-                icon: <Icons.UserPlus />,
-                path: '/auth',
-                childrens: [
-                    {
-                        id: "dash_log",
-                        name: 'Log In',
-                        path: '/auth',
-                        childrens: [
-                            {
-                                name: 'Login',
-                                path: '/auth/login',
-                            },
-                        ]
-                    },
-                    {
-                        id: "dash_sign",
-                        name: 'Sign Up',
-                        path: '/auth',
-                        childrens: [
-                            {
-                                name: 'Signup',
-                                path: '/auth/signup',
-                            },
-                            {
-                                name: 'Signup Simple',
-                                path: '/auth/signup-simple',
-                            },
-                            {
-                                name: 'Signup Classic',
-                                path: '/auth/signup',
-                            },
-                        ]
-                    },
-                ]
-            },
-            {
-                id: "dash_profile",
-                name: 'Profile',
-                icon: <Icons.UserSearch />,
-                path: '/pages',
-                badgeIndicator: <HkBadge bg="danger" indicator className="position-absolute top-0 start-100" />,
-                childrens: [
-                    {
-                        name: 'Profile',
-                        path: '/pages/profile',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Edit Profile',
-                        path: '/pages/edit-profile',
-                        grp_name: "apps",
-                    },
-                    {
-                        name: 'Account',
-                        path: '/pages/account',
-                        grp_name: "apps",
-                    },
-                ]
-            },
-
-        ]
-    },
-
-    {
-        group: 'Documentation',
-        contents: [
-            {
-                name: 'Documentation',
-                icon: <Icons.FileCode2 />,
-                path: 'https://nubra-ui-react.netlify.app/introduction',
-            },
-            {
-                name: 'Components',
-                icon: <Icons.Layout />,
-                path: 'https://nubra-ui-react.netlify.app/avatar',
-            },
-        ]
-    },
+    }
 ]

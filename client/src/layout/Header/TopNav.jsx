@@ -76,34 +76,8 @@ const handleLogout = () => {
                 <div className="nav-end-wrap">
                     <Nav className="navbar-nav flex-row">
                         <Nav.Item>
-                            <Button variant="flush-dark" as={Link} to="/apps/email" className="btn-icon btn-rounded flush-soft-hover">
-                                <span className="icon">
-                                    <span className=" position-relative">
-                                        <span className="feather-icon"><Inbox /></span>
-                                        <HkBadge bg="primary" soft pill size="sm" className="position-top-end-overflow-1" >4</HkBadge>
-                                    </span>
-                                </span>
-                            </Button>
-                        </Nav.Item>
-                        <Nav.Item>
                             <Dropdown className="dropdown-notifications">
-                                <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret">
-                                    <span className="icon">
-                                        <span className="position-relative">
-                                            <span className="feather-icon"><Bell /></span>
-                                            <HkBadge bg="success" indicator className="position-top-end-overflow-1" />
-                                        </span>
-                                    </span>
-                                </Dropdown.Toggle>
                                 <Dropdown.Menu align="end" className="p-0">
-                                    <Dropdown.Header className="px-4 fs-6">
-                                        Notifications
-                                        <Button variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover">
-                                            <span className="icon">
-                                                <span className="feather-icon"><Settings /></span>
-                                            </span>
-                                        </Button>
-                                    </Dropdown.Header>
                                     <SimpleBar className="dropdown-body  p-2">
                                         <Dropdown.Item>
                                             <div className="media">
@@ -218,51 +192,12 @@ const handleLogout = () => {
                                         <div className="media">
                                             <div className="media-head me-2">
                                                 <div className="avatar avatar-primary avatar-sm avatar-rounded">
-                                                    <span className="initial-wrap">Hk</span>
+                                                    <span className="initial-wrap">
+                                                        {user?.name?.substring(0, 1)}
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div className="media-body">
-                                                <Dropdown>
-                                                    <Dropdown.Toggle as={Link} to="#" className="d-block fw-medium text-dark">Hencework</Dropdown.Toggle>
-                                                    <Dropdown.Menu align="end">
-                                                        <div className="p-2">
-                                                            <div className="media align-items-center active-user mb-3">
-                                                                <div className="media-head me-2">
-                                                                    <div className="avatar avatar-primary avatar-xs avatar-rounded">
-                                                                        <span className="initial-wrap">Hk</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="media-body">
-                                                                    <Link to="#" className="d-flex link-dark">Hencework <i className="ri-checkbox-circle-fill fs-7 text-primary ms-1" />
-                                                                    </Link>
-                                                                    <Link to="#" className="d-block fs-8 link-secondary">
-                                                                        <u>Manage your account</u>
-                                                                    </Link>
-                                                                </div>
-                                                            </div>
-                                                            <div className="media align-items-center mb-3">
-                                                                <div className="media-head me-2">
-                                                                    <div className="avatar avatar-xs avatar-rounded">
-                                                                        <img src={avatar12} alt="user" className="avatar-img" />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="media-body">
-                                                                    <Link to="#" className="d-block link-dark">Jampack Team</Link>
-                                                                    <Link to="#" className="d-block fs-8 link-secondary">contact@hencework.com</Link>
-                                                                </div>
-                                                            </div>
-                                                            <Button variant="outline-light" size="sm" className="btn-block">
-                                                                <span>
-                                                                    <span className="icon">
-                                                                        <span className="feather-icon">
-                                                                            <Plus />
-                                                                        </span>
-                                                                    </span>
-                                                                    <span>Add Account</span></span>
-                                                            </Button>
-                                                        </div>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
                                                 <div className="fs-7">{user?.name || user?.email}</div>
                                                 <Button variant="link" className="d-block fs-8 link-secondary p-0" onClick={handleLogout}>
                                                     <u>Sign Out</u>
@@ -270,46 +205,9 @@ const handleLogout = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <Dropdown.Divider as="div" />
-                                    <Dropdown.Item as={Link} to="/pages/profile" >Profile</Dropdown.Item>
-                                    <Dropdown.Item>
-                                        <span className="me-2">Offers</span>
-                                        <span className="badge badge-sm badge-soft-pink">2</span>
-                                    </Dropdown.Item>
-                                    <div className="dropdown-divider" />
-                                    <h6 className="dropdown-header">Manage Account</h6>
-                                    <Dropdown.Item>
-                                        <span className="dropdown-icon feather-icon">
-                                            <CreditCard />
-                                        </span>
-                                        <span>Payment methods</span>
-                                    </Dropdown.Item>
-                                    <Dropdown.Item>
-                                        <span className="dropdown-icon feather-icon">
-                                            <CheckSquare />
-                                        </span>
-                                        <span>Subscriptions</span>
-                                    </Dropdown.Item>
-                                    <Dropdown.Item>
-                                        <span className="dropdown-icon feather-icon">
-                                            <Settings />
-                                        </span>
-                                        <span>Settings</span>
-                                    </Dropdown.Item>
-                                    <div className="dropdown-divider" />
-                                    <Dropdown.Item>
-                                        <span className="dropdown-icon feather-icon">
-                                            <Tag />
-                                        </span>
-                                        <span>Raise a ticket</span>
-                                    </Dropdown.Item>
-                                    <div className="dropdown-divider" />
-                                    <Dropdown.Item>
-                                        Terms &amp; Conditions
-                                    </Dropdown.Item>
-                                    <Dropdown.Item>
-                                        Help &amp; Support
-                                    </Dropdown.Item>
+                                    
+                                    
+                                    
                                 </Dropdown.Menu>
                             </Dropdown>
                         </Nav.Item>

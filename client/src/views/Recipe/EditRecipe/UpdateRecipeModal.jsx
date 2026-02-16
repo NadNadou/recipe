@@ -12,7 +12,7 @@ import { Link } from 'react-feather';
 const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
   const dispatch = useDispatch();
 
-  const { ingredients, equipments, tags, cookingUnits } = useSelector(
+  const { ingredients, equipments, tags, cookingUnits, cookingAppliances } = useSelector(
     state => state.metadataReducer
   );
 
@@ -198,6 +198,42 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
               />
             </Col>
           </Row>
+
+          <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+            <span>Batch Cooking</span>
+          </div>
+          <Row className="mb-3">
+            <Col sm={6}>
+              <Form.Check
+                type="switch"
+                id="isBatchCookingDefault"
+                label="Recette batch cooking par défaut"
+                checked={recipeData.isBatchCookingDefault || false}
+                onChange={e => handleRecipeChange('isBatchCookingDefault', e.target.checked)}
+              />
+              <Form.Text className="text-muted">
+                Cocher si cette recette est déjà optimisée pour le batch cooking
+              </Form.Text>
+            </Col>
+            <Col sm={6}>
+              <Form.Group>
+                <Form.Label>Multiplicateur minimum</Form.Label>
+                <Form.Select
+                  value={recipeData.minBatchMultiplier || 2}
+                  onChange={e => handleRecipeChange('minBatchMultiplier', parseInt(e.target.value))}
+                  disabled={recipeData.isBatchCookingDefault}
+                >
+                  <option value={2}>x2 (double)</option>
+                  <option value={3}>x3 (triple)</option>
+                  <option value={4}>x4 (quadruple)</option>
+                </Form.Select>
+                <Form.Text className="text-muted">
+                  Multiplicateur appliqué si utilisée en batch cooking
+                </Form.Text>
+              </Form.Group>
+            </Col>
+          </Row>
+
           <Form.Group className="mb-3">
             <Form.Label>Image</Form.Label>
             <Form.Control
@@ -474,6 +510,31 @@ const UpdateRecipeModal = ({ show, onClose, recipeId }) => {
           })}
 
 
+
+          <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+            <span>Cooking Appliances</span>
+          </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Which appliances does this recipe use?</Form.Label>
+            <div className="d-flex flex-wrap gap-3">
+              {cookingAppliances.map(appliance => (
+                <Form.Check
+                  key={appliance.value}
+                  type="checkbox"
+                  id={`edit-appliance-${appliance.value}`}
+                  label={<span>{appliance.icon} {appliance.label}</span>}
+                  checked={(recipeData.cookingAppliances || []).includes(appliance.value)}
+                  onChange={(e) => {
+                    const current = recipeData.cookingAppliances || [];
+                    const updated = e.target.checked
+                      ? [...current, appliance.value]
+                      : current.filter(a => a !== appliance.value);
+                    handleRecipeChange('cookingAppliances', updated);
+                  }}
+                />
+              ))}
+            </div>
+          </Form.Group>
 
           <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
             <span>Equipements</span>

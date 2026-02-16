@@ -10,11 +10,14 @@ import HkBadge from '../../../components/@hk-badge/@hk-badge';
 const WeeklyCaloriesChart = () => {
     const dispatch = useDispatch();
 
+    const { plans } = useSelector(state => state.planReducer);
+    const plansLength = plans?.length || 0;
+
     useEffect(()=>{
         dispatch(getWeeklyCalories())
-    },[])
+    },[dispatch, plansLength])
 
- 
+
     const rawData = useSelector(state => state.statsReducer.weeklyCalories);
     const mealTypesRaw = useSelector((state) => state.metadataReducer.mealTypes);
     const mealTypes = mealTypesRaw.filter((a) => a.label.toLowerCase() !== "babyfood");

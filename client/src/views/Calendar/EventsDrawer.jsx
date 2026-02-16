@@ -9,15 +9,16 @@ import '@sweetalert2/theme-bootstrap-4/bootstrap-4.css';
 import 'animate.css';
 
 import HkBadge from '../../components/@hk-badge/@hk-badge';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { deletePlan, updatePlan } from '../../redux/action/Plans';
 
-const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
+const EventsDrawer = ({ show, onClose, event, onUpdate, toDisplay }) => {
   const dispatch = useDispatch();
+  const { mealTypes } = useSelector(state => state.metadataReducer);
 
   const [editable, setEditable] = useState(false);
   const [eventColor, setEventColor] = useState("#009B84");
-  const [editableMealType, setEditableMealType] = useState("Déjeuner");
+  const [editableMealType, setEditableMealType] = useState("Lunch");
   const [editableNotes, setEditableNotes] = useState("");
   const [editableDate, setEditableDate] = useState("");
 
@@ -30,7 +31,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
         color,
       } = event.extendedProps;
 
-      setEditableMealType(mealType || "Déjeuner");
+      setEditableMealType(mealType || "Lunch");
       setEditableNotes(notes || "");
       setEditableDate(moment(date, "DD/MM/YYYY").format("YYYY-MM-DD"));
       setEventColor(color || "#009B84");
@@ -40,10 +41,13 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
   if (!event) return null;
 
   const {
-    recipeCal,
-    recipeProt,
-    recipeCarbs,
-    recipeFats,
+    // Per 100g macros
+    recipeCal100g,
+    recipeProt100g,
+    recipeCarbs100g,
+    recipeFats100g,
+    // Meal total calories
+    mealCalories,
     recipeCookTime,
     recipePrepTime,
     planId,
@@ -51,7 +55,8 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
     date,
     notes,
     mealType,
-    servings,
+    recipeServings,
+    planServings,
     isBatch
   } = event.extendedProps || {};
 
@@ -65,7 +70,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
 
   const DeletEvent = () => {
     Swal.fire({
-      html: '<div class="mb-3"><i class="ri-delete-bin-6-line fs-5 text-danger"></i></div><h5 class="text-danger">Supprimer ce plan ?</h5><p>Cette action est irréversible.</p>',
+      html: '<div class="mb-3"><i class="ri-delete-bin-6-line fs-5 text-danger"></i></div><h5 class="text-danger">Delete this plan?</h5><p>This action cannot be undone.</p>',
       customClass: {
         confirmButton: 'btn btn-outline-secondary text-danger',
         cancelButton: 'btn btn-outline-secondary text-grey',
@@ -73,8 +78,8 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
       },
       showCancelButton: true,
       buttonsStyling: false,
-      confirmButtonText: 'Oui, supprimer',
-      cancelButtonText: 'Non, annuler',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'No, cancel',
       reverseButtons: true,
       showClass: { popup: 'animate__animated animate__fadeInDown' },
       hideClass: { popup: 'animate__animated animate__fadeOutUp' }
@@ -83,7 +88,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
         dispatch(deletePlan(planId));
         onClose();
         Swal.fire({
-          html: '<div class="d-flex align-items-center"><i class="ri-delete-bin-5-fill me-2 fs-3 text-danger"></i><h5 class="text-danger mb-0">Le plan a été supprimé !</h5></div>',
+          html: '<div class="d-flex align-items-center"><i class="ri-delete-bin-5-fill me-2 fs-3 text-danger"></i><h5 class="text-danger mb-0">Plan deleted!</h5></div>',
           timer: 2000,
           showConfirmButton: false,
         });
@@ -171,22 +176,29 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
                   <span className="ev-icon-wrap"><Icons.Calendar /></span>
                   {date}
                 </li>
-                {servings && (
+                {planServings && (
                 <li>
                     <span className="ev-icon-wrap"><Icons.Users /></span>
-                    Number of servings : {servings}
+                    Servings: {planServings} {planServings > 1 ? 'portions' : 'portion'}
                 </li>
                 )}
 
-                {mealType !== "Babyfood" && (
+                {mealType !== "Babyfood" && mealCalories > 0 && (
+                <li>
+                    <span className="ev-icon-wrap"><Icons.Zap /></span>
+                    <strong>🔥 {mealCalories} kcal</strong> for this meal
+                </li>
+                )}
+
+                {mealType !== "Babyfood" && (recipeProt100g > 0 || recipeCarbs100g > 0 || recipeFats100g > 0) && (
                 <li>
                     <span className="ev-icon-wrap"><Icons.Activity /></span>
                     <div>
-                    <strong>Macros per 100g :</strong><br />
-                    🥩 {recipeProt || 0} g proteins<br />
-                    🍞 {recipeCarbs || 0} g carbs<br />
-                    🧈 {recipeFats || 0} g fat<br />
-                    🔥 {recipeCal || 0} kcal
+                    <strong>Macros per 100g:</strong><br />
+                    🥩 {Math.round(recipeProt100g) || 0}g proteins<br />
+                    🍞 {Math.round(recipeCarbs100g) || 0}g carbs<br />
+                    🧈 {Math.round(recipeFats100g) || 0}g fat<br />
+                    🔥 {Math.round(recipeCal100g) || 0} kcal
                     </div>
                 </li>
                 )}
@@ -231,12 +243,13 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
           <SimpleBar className="nicescroll-bar">
             <div className="drawer-content-wrap">
               <Form.Group className="mt-3">
-                <Form.Label>Type de repas</Form.Label>
+                <Form.Label>Meal type</Form.Label>
                 <Form.Select value={editableMealType} onChange={(e) => setEditableMealType(e.target.value)}>
-                  <option value="Petit-déjeuner">Petit-déjeuner</option>
-                  <option value="Déjeuner">Déjeuner</option>
-                  <option value="Dîner">Dîner</option>
-                  <option value="Snack">Snack</option>
+                  {mealTypes.map(type => (
+                    <option key={type.value} value={type.label}>
+                      {type.label}
+                    </option>
+                  ))}
                 </Form.Select>
               </Form.Group>
 
@@ -248,7 +261,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
                   disabled={isBatch}
                   value={editableNotes}
                   onChange={(e) => setEditableNotes(e.target.value)}
-                  placeholder="Ajouter des notes..."
+                  placeholder="Add notes..."
                 />
               </Form.Group>
 
@@ -257,6 +270,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
                 <Form.Control
                   type="date"
                   value={editableDate}
+                  min={moment().format('YYYY-MM-DD')}
                   onChange={(e) => setEditableDate(e.target.value)}
                 />
               </Form.Group>
@@ -264,7 +278,7 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
           </SimpleBar>
         </div>
         <div className="drawer-footer d-flex justify-content-end">
-          <Button variant="secondary" className="drawer-edit-close me-2" onClick={() => setEditable(false)}>Annuler</Button>
+          <Button variant="secondary" className="drawer-edit-close me-2" onClick={() => setEditable(false)}>Cancel</Button>
           <Button
             variant="primary"
             className="drawer-edit-close"
@@ -279,15 +293,15 @@ const EventsDrawer = ({ show, onClose, event,onUpdate,toDisplay }) => {
                   onClose();
                   Swal.fire({
                     icon: 'success',
-                    title: 'Mis à jour',
-                    text: 'Le plan a bien été mis à jour.',
+                    title: 'Updated',
+                    text: 'The plan has been updated.',
                     timer: 1500,
                     showConfirmButton: false,
                   });
                 });
               }}
           >
-            Enregistrer
+            Save
           </Button>
         </div>
       </div>

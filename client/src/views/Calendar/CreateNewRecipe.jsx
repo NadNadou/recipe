@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
 
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -23,25 +24,28 @@ const CreateNewRecipe = ({ show, hide }) => {
     const {mealTypes} = useSelector(state => state.metadataReducer);
 
     const [selectedRecipe, setSelectedRecipe] = useState(null);
-    const [mealType, setMealType] = useState("Déjeuner");
+    const [mealType, setMealType] = useState("Lunch");
     const [notes, setNotes] = useState("");
     const [servings, setServings] = useState(1);
 
 
     const handleSubmitPlan = (e) => {
         e.preventDefault();
-      
+
         if (!selectedRecipe) return alert("Veuillez choisir une recette");
-      
+
+        // Format date as YYYY-MM-DD to avoid timezone issues
+        const dateStr = moment(start).format('YYYY-MM-DD');
+
         const payload = {
             recipeId: selectedRecipe,
-            date: start,
+            date: dateStr,
             mealType,
             notes,
             servings
           };
-          
-      
+
+
         dispatch(createPlan(payload))
           .then(() => {
             hide(); // ferme le modal seulement si succès-
@@ -97,13 +101,25 @@ const CreateNewRecipe = ({ show, hide }) => {
                         />
                     </Form.Group>
 
-
                     {selectedRecipe && (
                     <div className="mt-3 p-3 bg-light rounded">
-                        <p><strong>Calories :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.calories} kcal</p>
-                        <p><strong>Proteins :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.proteins} g</p>
-                        <p><strong>Carbs :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.carbs} g</p>
-                        <p><strong>Fats :</strong> {recipes.find(r => r._id === selectedRecipe)?.nutrition?.fats} g</p>
+                        {(() => {
+                            const recipe = recipes.find(r => r._id === selectedRecipe);
+                            const nutrition = recipe?.nutrition || {};
+                            const mealCal = Math.round((nutrition.caloriesPerPortion || 0) * servings);
+                            const mealProt = Math.round((nutrition.proteinsPerPortion || 0) * servings);
+                            const mealCarbs = Math.round((nutrition.carbsPerPortion || 0) * servings);
+                            const mealFats = Math.round((nutrition.fatsPerPortion || 0) * servings);
+                            return (
+                                <>
+                                    <p className="mb-1"><strong>🔥 Calories:</strong> {mealCal} kcal</p>
+                                    <p className="mb-1"><strong>🥩 Proteins:</strong> {mealProt} g</p>
+                                    <p className="mb-1"><strong>🍞 Carbs:</strong> {mealCarbs} g</p>
+                                    <p className="mb-0"><strong>🧈 Fats:</strong> {mealFats} g</p>
+                                    <small className="text-muted">For {servings} {servings > 1 ? 'portions' : 'portion'}</small>
+                                </>
+                            );
+                        })()}
                     </div>
                     )}
 
@@ -117,6 +133,7 @@ const CreateNewRecipe = ({ show, hide }) => {
                         dateFormat="dd/MM/yyyy"
                         locale={fr}
                         minDate={new Date()}
+                        maxDate={new Date(new Date().setDate(new Date().getDate() + 28))}
                         inline
                         />
                     </div>

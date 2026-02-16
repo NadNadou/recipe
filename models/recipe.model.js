@@ -67,6 +67,12 @@ const recipeSchema = new Schema(
         ref: "Equipment",
       },
     ],
+    cookingAppliances: [
+      {
+        type: String,
+        enum: ['oven', 'stovetop', 'airfryer', 'steamer', 'no-heat', 'robot'],
+      },
+    ],
     linkedRecipeIds: [
       {
         type: Schema.Types.ObjectId,
@@ -78,6 +84,18 @@ const recipeSchema = new Schema(
       default: "",
     },
     totalWeightInGrams: Number,
+
+    // Batch cooking settings
+    isBatchCookingDefault: {
+      type: Boolean,
+      default: false,
+    },
+    minBatchMultiplier: {
+      type: Number,
+      default: 2,
+      min: 2,
+      max: 10,
+    },
   },
   {
     timestamps: true,

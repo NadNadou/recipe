@@ -19,6 +19,8 @@ import Error503 from "../views/Authentication/Error503/Error503";
 import RecipeCards from "../views/Recipe/RecipeCards";
 import RecipeDetail from "../views/Recipe/RecipeDetails";
 import IngredientCards from "../views/Ingredients/IngredientCards";
+import TwoWeekPlanner from "../views/MealPlanner/TwoWeekPlanner";
+import CookingSessionPlanner from "../views/CookingSession/CookingSessionPlanner";
 
 
 export const routes = [
@@ -30,6 +32,8 @@ export const routes = [
     { path: 'apps/ingredient/all', exact: true, component: IngredientCards, protected:true },
     { path: 'apps/recipe/detail/:id', exact: true, component: RecipeDetail, protected:true},
     { path: 'apps/calendar', exact: true, component: Calendar, protected:true},
+    { path: 'apps/meal-planner', exact: true, component: TwoWeekPlanner, protected:true},
+    { path: 'apps/cooking-session', exact: true, component: CookingSessionPlanner, protected:true},
 
     { path: 'apps/email', exact: true, component: Email },
     //Pages

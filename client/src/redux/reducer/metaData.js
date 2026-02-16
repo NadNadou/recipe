@@ -55,41 +55,41 @@ import {
         value: 'breakfast',
         label: 'Breakfast',
         short: 'BRK',
-        backgroundColor: '#FFD700',
-        borderColor: '#FFC107',
+        backgroundColor: '#FFA726',
+        borderColor: '#FB8C00',
         defaultTime: '08:00',
       },
       {
         value: 'lunch',
         label: 'Lunch',
         short: 'LUN',
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#66BB6A',
         borderColor: '#43A047',
         defaultTime: '12:00',
-      },
-      {
-        value: 'snack',
-        label: 'Snack',
-        short: 'SNA',
-        backgroundColor: '#FF5722',
-        borderColor: '#F4511E',
-        defaultTime: '16:00',
       },
       {
         value: 'dinner',
         label: 'Dinner',
         short: 'DIN',
-        backgroundColor: '#2196F3',
+        backgroundColor: '#42A5F5',
         borderColor: '#1E88E5',
-        defaultTime: '20:00',
+        defaultTime: '19:30',
       },
       {
-        value: 'baby',
+        value: 'lunchbox',
+        label: 'Lunchbox',
+        short: 'LBX',
+        backgroundColor: '#AB47BC',
+        borderColor: '#8E24AA',
+        defaultTime: '12:00',
+      },
+      {
+        value: 'babyfood',
         label: 'Babyfood',
         short: 'BBF',
-        backgroundColor: '#FFEFD5',
-        borderColor: '#F4A460',        
-        defaultTime: '13:00',
+        backgroundColor: '#EC407A',
+        borderColor: '#D81B60',
+        defaultTime: '12:00',
       },
     ],    
     cookingUnits: [
@@ -152,8 +152,15 @@ import {
       { label: 'Holiday meal', category: 'occasion' },
       { label: 'Batch cooking', category: 'organization' },
       { label: 'Babyfood', category: 'family' }
-    ]   
-    
+    ],
+    cookingAppliances: [
+      { value: 'oven', label: 'Oven', icon: '🔥', color: '#FF6B6B' },
+      { value: 'stovetop', label: 'Stovetop', icon: '🍳', color: '#4ECDC4' },
+      { value: 'airfryer', label: 'Air Fryer', icon: '💨', color: '#45B7D1' },
+      { value: 'steamer', label: 'Steamer', icon: '♨️', color: '#A8E6CF' },
+      { value: 'no-heat', label: 'No Cooking', icon: '🥗', color: '#96CEB4' },
+      { value: 'robot', label: 'Blender/Processor', icon: '🔪', color: '#FFB347' },
+    ],
   };
   
   const metaDataReducer = (state = initialState, action) => {

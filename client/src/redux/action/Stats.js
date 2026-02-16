@@ -7,7 +7,10 @@ import {
   GET_WEEKLY_CALORIES_FAIL,
   GET_WEEKLY_INGREDIENTS_REQUEST,
   GET_WEEKLY_INGREDIENTS_SUCCESS,
-  GET_WEEKLY_INGREDIENTS_FAIL
+  GET_WEEKLY_INGREDIENTS_FAIL,
+  GET_GROCERY_LIST_REQUEST,
+  GET_GROCERY_LIST_SUCCESS,
+  GET_GROCERY_LIST_FAIL
 } from '../constants/Stats';
 
 export const getWeeklyCalories = () => async dispatch => {
@@ -51,6 +54,29 @@ export const getWeeklyIngredientsByDay = () => async dispatch => {
 
     dispatch({
       type: GET_WEEKLY_INGREDIENTS_FAIL,
+      payload: message
+    });
+  }
+};
+
+export const getGroceryList = (startDate, endDate) => async dispatch => {
+  try {
+    dispatch({ type: GET_GROCERY_LIST_REQUEST });
+
+    const res = await apiStats.getGroceryList(startDate, endDate);
+
+    dispatch({
+      type: GET_GROCERY_LIST_SUCCESS,
+      payload: res.data
+    });
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Error loading grocery list.";
+
+    dispatch({
+      type: GET_GROCERY_LIST_FAIL,
       payload: message
     });
   }

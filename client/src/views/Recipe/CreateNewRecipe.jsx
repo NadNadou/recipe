@@ -19,6 +19,7 @@ const CreateNewRecipe = ({ show, close }) => {
     const equipmentsFromStore = useSelector(state => state.metadataReducer.equipments);
     const tagsFromStore = useSelector(state => state.metadataReducer.tags);
     const cookingUnits = useSelector(state=> state.metadataReducer.cookingUnits);
+    const cookingAppliances = useSelector(state => state.metadataReducer.cookingAppliances);
     const recipesFromStore = useSelector(state => state.recipeReducer.recipes);
 
     useEffect(() => {
@@ -59,7 +60,10 @@ const CreateNewRecipe = ({ show, close }) => {
         image: '',
         tagIds: [],
         equipmentIds: [],
-        linkedRecipeIds: []
+        linkedRecipeIds: [],
+        isBatchCookingDefault: false,
+        minBatchMultiplier: 2,
+        cookingAppliances: [],
     });
 
     const [steps, setSteps] = useState([
@@ -190,6 +194,8 @@ const CreateNewRecipe = ({ show, close }) => {
             tagIds: [],
             equipmentIds: [],
             linkedRecipeIds: [],
+            isBatchCookingDefault: false,
+            minBatchMultiplier: 2
         });
         setRecipeIngredients([{ ingredientId: '', quantity: '', unit: '', isNew: false, newName: '' }]);
         setNutrition({ calories: 0, proteins: 0, carbs: 0, fats: 0 });
@@ -269,6 +275,65 @@ const CreateNewRecipe = ({ show, close }) => {
                         <Col sm={4}><Form.Control type="number" placeholder="Cuisson (min)" onChange={e => handleRecipeChange('cookTime', e.target.value)} /></Col>
                         <Col sm={4}><Form.Control type="number" placeholder="Repos (min)" onChange={e => handleRecipeChange('restTime', e.target.value)} /></Col>
                     </Row>
+
+                    <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+                        <span>Batch Cooking</span>
+                    </div>
+                    <Row className="gx-3 mb-3">
+                        <Col sm={6}>
+                            <Form.Check
+                                type="switch"
+                                id="isBatchCookingDefault"
+                                label="Recette batch cooking par défaut"
+                                checked={recipeData.isBatchCookingDefault}
+                                onChange={e => handleRecipeChange('isBatchCookingDefault', e.target.checked)}
+                            />
+                            <Form.Text className="text-muted">
+                                Cocher si cette recette est déjà optimisée pour le batch cooking (pas besoin de multiplier les quantités)
+                            </Form.Text>
+                        </Col>
+                        <Col sm={6}>
+                            <Form.Group>
+                                <Form.Label>Multiplicateur minimum</Form.Label>
+                                <Form.Select
+                                    value={recipeData.minBatchMultiplier}
+                                    onChange={e => handleRecipeChange('minBatchMultiplier', parseInt(e.target.value))}
+                                    disabled={recipeData.isBatchCookingDefault}
+                                >
+                                    <option value={2}>x2 (double)</option>
+                                    <option value={3}>x3 (triple)</option>
+                                    <option value={4}>x4 (quadruple)</option>
+                                </Form.Select>
+                                <Form.Text className="text-muted">
+                                    Multiplicateur appliqué si utilisée en batch cooking
+                                </Form.Text>
+                            </Form.Group>
+                        </Col>
+                    </Row>
+
+                <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
+                    <span>Cooking Appliances</span>
+                </div>
+                <Form.Group className="mb-3">
+                    <Form.Label>Which appliances does this recipe use?</Form.Label>
+                    <div className="d-flex flex-wrap gap-3">
+                        {cookingAppliances.map(appliance => (
+                            <Form.Check
+                                key={appliance.value}
+                                type="checkbox"
+                                id={`create-appliance-${appliance.value}`}
+                                label={<span>{appliance.icon} {appliance.label}</span>}
+                                checked={recipeData.cookingAppliances.includes(appliance.value)}
+                                onChange={(e) => {
+                                    const updated = e.target.checked
+                                        ? [...recipeData.cookingAppliances, appliance.value]
+                                        : recipeData.cookingAppliances.filter(a => a !== appliance.value);
+                                    handleRecipeChange('cookingAppliances', updated);
+                                }}
+                            />
+                        ))}
+                    </div>
+                </Form.Group>
 
                 <div className="title title-xs title-wth-divider text-primary text-uppercase my-4">
                 <span>Équipements</span>

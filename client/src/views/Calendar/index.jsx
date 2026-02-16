@@ -40,7 +40,11 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
         const recipePrepTime = plan.recipeId?.prepTime|| 0;
         const recipeCookTime = plan.recipeId?.cookTime|| 0;
         const recipeNutrition = plan.recipeId?.nutrition|| {};
-        const recipeServings = plan.recipeId?.servings|| 0;
+        const recipeServings = plan.recipeId?.servings|| 1;
+        const planServings = plan.servings || 1;
+
+        // Calculate calories for this meal (per portion * plan servings)
+        const mealCalories = Math.round((recipeNutrition?.caloriesPerPortion || 0) * planServings);
 
         const date = plan.date ? plan.date.split('T')[0] : '';
         const time = getDefaultTime(plan.mealType);
@@ -56,16 +60,20 @@ const Calendar = ({ topNavCollapsed, toggleTopNav }) => {
             notes: plan.notes,
             mealType: plan.mealType,
             recipeId: plan.recipeId?._id,
-            recipeCal:recipeNutrition?.calories,
-            recipeProt:recipeNutrition?.proteins,
-            recipeCarbs:recipeNutrition?.carbs,
-            recipeFats:recipeNutrition?.fats,
+            // Per 100g values for nutrition display
+            recipeCal100g: recipeNutrition?.caloriesPer100g || 0,
+            recipeProt100g: recipeNutrition?.proteinsPer100g || 0,
+            recipeCarbs100g: recipeNutrition?.carbsPer100g || 0,
+            recipeFats100g: recipeNutrition?.fatsPer100g || 0,
+            // Total calories for this meal
+            mealCalories: mealCalories,
             recipeCookTime:recipeCookTime,
             recipePrepTime:recipePrepTime,
             planId: plan._id,
             recipeTitle: recipeTitle,
-            servings:recipeServings,
-            isBatch:!!plan.parentPlanId,
+            recipeServings: recipeServings,
+            planServings: planServings,
+            isBatch: plan.isBatchCooked || false,
             date: moment(plan.date).format("DD/MM/YYYY"),
           }
         };

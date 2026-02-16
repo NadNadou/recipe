@@ -1,4 +1,7 @@
-const RecipePlan = require("../models/recipePlan.model");
+const { RecipePlan, BatchSession } = require("../models/recipePlan.model");
+const Recipe = require("../models/recipe.model");
+
+// ==================== PLANS ====================
 
 // GET all plans for a user
 exports.getPlansByUser = async (req, res) => {
@@ -7,71 +10,51 @@ exports.getPlansByUser = async (req, res) => {
       userId: req.user._id
     })
       .populate("recipeId")
+      .populate("batchSessionId")
       .sort({ date: 1 });
 
     res.status(200).json(plans);
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// POST create a plan
+// POST create a plan (simple or from batch)
 exports.createPlan = async (req, res) => {
   try {
     const userId = req.user._id;
+    const { batchSessionId } = req.body;
+
+    // If from batch session, decrement remaining portions
+    if (batchSessionId) {
+      const session = await BatchSession.findById(batchSessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Batch session not found" });
+      }
+      if (session.remainingPortions <= 0) {
+        return res.status(400).json({ message: "No portions remaining in this batch" });
+      }
+
+      // Decrement remaining portions
+      session.remainingPortions -= 1;
+      await session.save();
+    }
 
     const newPlan = new RecipePlan({
       ...req.body,
       userId,
+      isBatchCooked: !!batchSessionId,
     });
 
     const saved = await newPlan.save();
+    const populated = await RecipePlan.findById(saved._id)
+      .populate("recipeId")
+      .populate("batchSessionId");
 
-    // 👻 Batch Cooking standard
-    if (
-      saved.servings >= 4 &&
-      saved.servings % 2 === 0 &&
-      saved.mealType !== 'Babyfood'
-    ) {
-      const ghostPlan = new RecipePlan({
-        userId,
-        recipeId: saved.recipeId,
-        date: saved.date,
-        mealType: saved.mealType,
-        notes: '[Batch Cooking]',
-        servings: saved.servings / 2,
-        parentPlanId: saved._id,
-        isBatch: true,
-      });
-      await ghostPlan.save();
-    }
-
-    // 👶 Cas Babyfood : créer servings - 1 plans fantômes
-    if (saved.mealType === 'Babyfood' && saved.servings > 1) {
-      const babyPlans = [];
-
-      for (let i = 1; i < saved.servings; i++) {
-        babyPlans.push(
-          new RecipePlan({
-            userId,
-            recipeId: saved.recipeId,
-            date: saved.date,
-            mealType: saved.mealType,
-            notes: `[Portion bébé ${i + 1}]`,
-            servings: 1,
-            parentPlanId: saved._id,
-            isBatch: true,
-          })
-        );
-      }
-
-      await RecipePlan.insertMany(babyPlans);
-    }
-
-    res.status(201).json(saved);
+    res.status(201).json(populated);
   } catch (error) {
     res.status(400).json({
-      message: 'Erreur de création',
+      message: 'Error creating plan',
       error: error.message,
     });
   }
@@ -81,49 +64,163 @@ exports.createPlan = async (req, res) => {
 exports.updatePlan = async (req, res) => {
   try {
     const existingPlan = await RecipePlan.findById(req.params.id);
-    if (!existingPlan) return res.status(404).json({ message: "Plan introuvable" });
+    if (!existingPlan) return res.status(404).json({ message: "Plan not found" });
 
-    const updated = await RecipePlan.findByIdAndUpdate(req.params.id, req.body, { new: true });
-
-    const oldServings = existingPlan.servings;
-    const newServings = req.body.servings ?? oldServings;
-
-    // 🔥 Si la valeur de servings a changé
-    if (newServings !== oldServings) {
-      // 🧹 Supprimer anciens plans fantômes
-      await RecipePlan.deleteMany({ parentPlanId: updated._id });
-
-      // 👻 Recréer un ou plusieurs plans fantômes
-      if (newServings > 2 && newServings % 2 === 0) {
-        const ghostPlan = new RecipePlan({
-          ...updated.toObject(),
-          servings: newServings / 2,
-          parentPlanId: updated._id,
-          _id: undefined, // important pour forcer la création
-        });
-        await ghostPlan.save();
-      }
-    }
+    const updated = await RecipePlan.findByIdAndUpdate(req.params.id, req.body, { new: true })
+      .populate("recipeId")
+      .populate("batchSessionId");
 
     res.status(200).json(updated);
   } catch (error) {
-    res.status(400).json({ message: "Erreur de mise à jour", error: error.message });
+    res.status(400).json({ message: "Error updating plan", error: error.message });
   }
 };
-
-
 
 // DELETE a plan
 exports.deletePlan = async (req, res) => {
   try {
-    const deleted = await RecipePlan.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Plan introuvable" });
+    const plan = await RecipePlan.findById(req.params.id);
+    if (!plan) return res.status(404).json({ message: "Plan not found" });
 
-    // 👻 Supprime les éventuels plans fantômes
-    await RecipePlan.deleteMany({ parentPlanId: req.params.id });
+    // If from batch, restore the portion
+    if (plan.batchSessionId) {
+      await BatchSession.findByIdAndUpdate(plan.batchSessionId, {
+        $inc: { remainingPortions: 1 }
+      });
+    }
 
-    res.status(200).json({ message: "Plan supprimé" });
+    await RecipePlan.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: "Plan deleted" });
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ==================== BATCH SESSIONS ====================
+
+// GET all batch sessions for a user
+exports.getBatchSessions = async (req, res) => {
+  try {
+    const sessions = await BatchSession.find({
+      userId: req.user._id,
+      remainingPortions: { $gt: 0 } // Only sessions with remaining portions
+    })
+      .populate("recipeId")
+      .sort({ preparedDate: -1 });
+
+    res.status(200).json(sessions);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// GET all batch sessions (including empty ones)
+exports.getAllBatchSessions = async (req, res) => {
+  try {
+    const sessions = await BatchSession.find({
+      userId: req.user._id
+    })
+      .populate("recipeId")
+      .sort({ preparedDate: -1 });
+
+    res.status(200).json(sessions);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// POST create a batch session
+exports.createBatchSession = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { recipeId, quantityMultiplier = 2, preparedDate, notes } = req.body;
+
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    // Calculate total portions
+    let effectiveMultiplier = quantityMultiplier;
+    if (!recipe.isBatchCookingDefault) {
+      effectiveMultiplier = Math.max(quantityMultiplier, recipe.minBatchMultiplier || 2);
+    }
+
+    const totalPortions = recipe.servings * effectiveMultiplier;
+
+    const newSession = new BatchSession({
+      userId,
+      recipeId,
+      preparedDate: preparedDate || new Date(),
+      quantityMultiplier: effectiveMultiplier,
+      totalPortions,
+      remainingPortions: totalPortions,
+      notes,
+    });
+
+    const saved = await newSession.save();
+    const populated = await BatchSession.findById(saved._id).populate("recipeId");
+
+    res.status(201).json(populated);
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error creating batch session',
+      error: error.message,
+    });
+  }
+};
+
+// DELETE a batch session (keeps linked plans)
+exports.deleteBatchSession = async (req, res) => {
+  try {
+    const session = await BatchSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ message: "Batch session not found" });
+
+    // Keep the plans but remove the batch session reference and batch flag
+    await RecipePlan.updateMany(
+      { batchSessionId: req.params.id },
+      { $set: { batchSessionId: null, isBatchCooked: false } }
+    );
+
+    await BatchSession.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: "Batch session deleted (plans kept)" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// POST consume a portion from batch (manual decrease)
+exports.consumeBatchPortion = async (req, res) => {
+  try {
+    const session = await BatchSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ message: "Batch session not found" });
+
+    if (session.remainingPortions <= 0) {
+      return res.status(400).json({ message: "No portions remaining" });
+    }
+
+    session.remainingPortions -= 1;
+    await session.save();
+
+    const populated = await BatchSession.findById(session._id).populate("recipeId");
+    res.status(200).json(populated);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// PUT update batch session
+exports.updateBatchSession = async (req, res) => {
+  try {
+    const updated = await BatchSession.findByIdAndUpdate(req.params.id, req.body, { new: true })
+      .populate("recipeId");
+
+    if (!updated) return res.status(404).json({ message: "Batch session not found" });
+
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(400).json({ message: "Error updating batch session", error: error.message });
   }
 };

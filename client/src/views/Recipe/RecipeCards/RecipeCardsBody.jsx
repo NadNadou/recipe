@@ -198,6 +198,9 @@ const RecipeCardsBody = () => {
                                         <img src={recipe.image || avatar2} alt={recipe.title} className="avatar-img" />
                                     </div>
                                     <div className="user-name">{recipe.title}</div>
+                                    {recipe.isBatchCookingDefault && (
+                                        <span className="badge bg-info mb-1">Batch Cooking</span>
+                                    )}
                                     <div className="user-email">{recipe.description || 'Pas de description'}</div>
                                     <div className="user-desg">
                                         <span className="badge badge-primary badge-indicator badge-indicator-lg me-2" />

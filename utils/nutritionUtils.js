@@ -15,18 +15,22 @@ const calculateMacrosFromIngredients = async (recipeIngredients) => {
   let totalProteins = 0;
   let totalCarbs = 0;
   let totalFats = 0;
+  let totalWeightInGrams = 0;
 
   for (const ing of recipeIngredients) {
     if (!ing.ingredientId) continue;
 
     const ingredient = await Ingredient.findById(ing.ingredientId).lean();
-    if (!ingredient || !ingredient.nutritionPer100g) continue;
+    if (!ingredient) continue;
 
-    const { calories, proteins, carbs, fats } = ingredient.nutritionPer100g;
     const grams = convertToGrams(ing.quantity, ing.unit);
-
     if (!grams) continue;
 
+    totalWeightInGrams += grams;
+
+    if (!ingredient.nutritionPer100g) continue;
+
+    const { calories = 0, proteins = 0, carbs = 0, fats = 0 } = ingredient.nutritionPer100g;
     const factor = grams / 100;
 
     totalCalories += calories * factor;
@@ -39,7 +43,8 @@ const calculateMacrosFromIngredients = async (recipeIngredients) => {
     calories: Math.round(totalCalories),
     proteins: parseFloat(totalProteins.toFixed(1)),
     carbs: parseFloat(totalCarbs.toFixed(1)),
-    fats: parseFloat(totalFats.toFixed(1))
+    fats: parseFloat(totalFats.toFixed(1)),
+    totalWeightInGrams: Math.round(totalWeightInGrams)
   };
 };
 

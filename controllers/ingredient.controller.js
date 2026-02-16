@@ -1,5 +1,7 @@
 const Ingredient = require("../models/ingredient.model");
 const Recipe = require("../models/recipe.model");
+const { fetchNutritionFromOpenFoodFacts, searchNutritionMultiple } = require("../utils/openFoodFactsService");
+const { calculateNutritionPerPortionAnd100g } = require("../utils/nutritionUtils");
 
 // GET all ingredients
 exports.getAllIngredients = async (req, res) => {
@@ -176,16 +178,16 @@ exports.deleteIngredient = async (req, res) => {
   try {
     const ingredientId = req.params.id;
 
-    // 1. Vérifier si l’ingrédient est utilisé dans une recette
+    // 1. Vérifier si l'ingrédient est utilisé dans une recette
     const usedInRecipe = await Recipe.exists({ 'recipeIngredients.ingredientId': ingredientId });
 
     if (usedInRecipe) {
       return res.status(400).json({
-        message: "Suppression impossible : l’ingrédient est utilisé dans au moins une recette.",
+        message: "Suppression impossible : l'ingrédient est utilisé dans au moins une recette.",
       });
     }
 
-    // 2. Supprimer l’ingrédient s’il n’est pas utilisé
+    // 2. Supprimer l'ingrédient s'il n'est pas utilisé
     const deleted = await Ingredient.findByIdAndDelete(ingredientId);
 
     if (!deleted) {
@@ -198,4 +200,233 @@ exports.deleteIngredient = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
+
+// POST /api/ingredients/:id/enrich - Enrich a single ingredient with OpenFoodFacts data
+exports.enrichIngredientNutrition = async (req, res) => {
+  try {
+    const ingredient = await Ingredient.findById(req.params.id);
+    if (!ingredient) {
+      return res.status(404).json({ message: "Ingrédient introuvable" });
+    }
+
+    // Allow custom search term or use ingredient name
+    const searchTerm = req.body.searchTerm || ingredient.name;
+    const nutritionData = await fetchNutritionFromOpenFoodFacts(searchTerm);
+
+    if (!nutritionData) {
+      return res.status(404).json({
+        message: `Aucune donnée nutritionnelle trouvée pour "${searchTerm}"`,
+        ingredient: ingredient.name
+      });
+    }
+
+    // Update ingredient with nutrition data
+    ingredient.nutritionPer100g = {
+      calories: nutritionData.calories,
+      proteins: nutritionData.proteins,
+      carbs: nutritionData.carbs,
+      fats: nutritionData.fats
+    };
+
+    await ingredient.save();
+
+    // Recalculate nutrition for all recipes using this ingredient
+    await recalculateRecipesForIngredient(ingredient._id);
+
+    res.status(200).json({
+      message: "Données nutritionnelles mises à jour",
+      ingredient: ingredient.name,
+      nutritionPer100g: ingredient.nutritionPer100g,
+      source: nutritionData.source,
+      matchedProduct: nutritionData.productName
+    });
+
+  } catch (error) {
+    console.error('Error enriching ingredient:', error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// POST /api/ingredients/enrich-all - Enrich all ingredients missing nutrition data
+exports.enrichAllIngredients = async (req, res) => {
+  try {
+    const { overwrite = false } = req.body;
+
+    // Find ingredients to update
+    let query = {};
+    if (!overwrite) {
+      // Only ingredients with empty/zero nutrition
+      query = {
+        $or: [
+          { 'nutritionPer100g.calories': { $in: [0, null, undefined] } },
+          { nutritionPer100g: { $exists: false } }
+        ]
+      };
+    }
+
+    const ingredients = await Ingredient.find(query);
+
+    const results = {
+      total: ingredients.length,
+      success: [],
+      failed: [],
+      skipped: []
+    };
+
+    for (const ingredient of ingredients) {
+      // Add delay to avoid rate limiting (OpenFoodFacts recommends max 100 req/min)
+      await new Promise(resolve => setTimeout(resolve, 700));
+
+      const nutritionData = await fetchNutritionFromOpenFoodFacts(ingredient.name);
+
+      if (!nutritionData) {
+        results.failed.push({
+          id: ingredient._id,
+          name: ingredient.name,
+          reason: 'No data found'
+        });
+        continue;
+      }
+
+      ingredient.nutritionPer100g = {
+        calories: nutritionData.calories,
+        proteins: nutritionData.proteins,
+        carbs: nutritionData.carbs,
+        fats: nutritionData.fats
+      };
+
+      await ingredient.save();
+
+      results.success.push({
+        id: ingredient._id,
+        name: ingredient.name,
+        nutritionPer100g: ingredient.nutritionPer100g,
+        matchedProduct: nutritionData.productName
+      });
+    }
+
+    // Recalculate all recipes after batch update
+    if (results.success.length > 0) {
+      const allRecipes = await Recipe.find({});
+      for (const recipe of allRecipes) {
+        await recalculateRecipeNutrition(recipe);
+      }
+    }
+
+    res.status(200).json({
+      message: `Enrichissement terminé: ${results.success.length} succès, ${results.failed.length} échecs`,
+      results
+    });
+
+  } catch (error) {
+    console.error('Error in batch enrichment:', error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// POST /api/ingredients/search-nutrition - Search OpenFoodFacts without saving
+exports.searchNutrition = async (req, res) => {
+  try {
+    const { searchTerm } = req.body;
+
+    if (!searchTerm) {
+      return res.status(400).json({ message: "searchTerm est requis" });
+    }
+
+    const nutritionData = await fetchNutritionFromOpenFoodFacts(searchTerm);
+
+    if (!nutritionData) {
+      return res.status(404).json({
+        message: `Aucune donnée trouvée pour "${searchTerm}"`
+      });
+    }
+
+    res.status(200).json({
+      searchTerm,
+      nutritionPer100g: {
+        calories: nutritionData.calories,
+        proteins: nutritionData.proteins,
+        carbs: nutritionData.carbs,
+        fats: nutritionData.fats
+      },
+      source: nutritionData.source,
+      matchedProduct: nutritionData.productName
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// POST /api/ingredients/search-nutrition-multiple - Multiple results for selection UI
+exports.searchNutritionMultiple = async (req, res) => {
+  try {
+    const { searchTerm } = req.body;
+
+    if (!searchTerm) {
+      return res.status(400).json({ message: "searchTerm est requis" });
+    }
+
+    const results = await searchNutritionMultiple(searchTerm, 5);
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({
+        message: `Aucune donnée trouvée pour "${searchTerm}"`,
+        results: []
+      });
+    }
+
+    res.status(200).json({
+      searchTerm,
+      results: results.map(r => ({
+        productName: r.name,
+        source: r.source,
+        nutritionPer100g: {
+          calories: r.calories,
+          proteins: r.proteins,
+          carbs: r.carbs,
+          fats: r.fats,
+        }
+      }))
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// Helper function to recalculate nutrition for recipes using a specific ingredient
+async function recalculateRecipesForIngredient(ingredientId) {
+  const recipes = await Recipe.find({ 'recipeIngredients.ingredientId': ingredientId });
+
+  for (const recipe of recipes) {
+    await recalculateRecipeNutrition(recipe);
+  }
+}
+
+// Helper function to recalculate a single recipe's nutrition
+async function recalculateRecipeNutrition(recipe) {
+  let macros = { calories: 0, proteins: 0, carbs: 0, fats: 0 };
+  let totalWeight = 0;
+
+  for (const item of recipe.recipeIngredients) {
+    const ingredientData = await Ingredient.findById(item.ingredientId);
+    if (!ingredientData || !ingredientData.nutritionPer100g) continue;
+
+    const q = item.quantity || 0;
+    totalWeight += q;
+
+    const n = ingredientData.nutritionPer100g;
+    macros.calories += (n.calories / 100) * q;
+    macros.proteins += (n.proteins / 100) * q;
+    macros.carbs += (n.carbs / 100) * q;
+    macros.fats += (n.fats / 100) * q;
+  }
+
+  const servings = recipe.servings || 1;
+  recipe.nutrition = calculateNutritionPerPortionAnd100g(macros, totalWeight, servings);
+  recipe.totalWeightInGrams = Math.round(totalWeight);
+
+  await recipe.save();
+}
 

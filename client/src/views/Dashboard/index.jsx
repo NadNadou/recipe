@@ -1,23 +1,58 @@
-import React, { useEffect} from 'react';
-import {useDispatch, useSelector } from 'react-redux';
-import { Col, Container, Form, InputGroup, Nav, Row, Tab } from 'react-bootstrap';
-import DateRangePicker from 'react-bootstrap-daterangepicker';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Button, Col, Container, Form, Modal, Nav, Row, Tab } from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
 import moment from 'moment';
-import { Calendar } from 'react-feather';
-import ActiveUserCard from './ActiveUserCard';
 import WeeklyRecipePlanner from './WeeklyRecipePlanner';
-import CustomerTable from './CustomerTable';
 import DailyGroceryList from './DailyGroceryList';
+import BatchPile from './BatchPile';
 import { connect } from 'react-redux';
 import { toggleCollapsedNav } from '../../redux/action/Theme';
 import WeeklyCaloriesChart from './ChartData/WeeklyCaloriesChart';
+import { createPlan, getAllPlans, getBatchSessions } from '../../redux/action/Plans';
 
-const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
+const Dashboard = ({ toggleCollapsedNav }) => {
+    const dispatch = useDispatch();
+
+    // State for assign portion modal
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [selectedMealType, setSelectedMealType] = useState('');
+    const [assignDate, setAssignDate] = useState(new Date());
 
     useEffect(() => {
         toggleCollapsedNav(false);
+        dispatch(getAllPlans());
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, []);
+
+    // Handler when user clicks a portion button in BatchPile
+    const handleAssignPortion = (session, mealType) => {
+        setSelectedSession(session);
+        setSelectedMealType(mealType);
+        setAssignDate(new Date());
+        setShowAssignModal(true);
+    };
+
+    // Confirm assignment
+    const handleConfirmAssign = async () => {
+        if (!selectedSession || !selectedMealType) return;
+
+        // Format date as YYYY-MM-DD to avoid timezone issues
+        const dateStr = moment(assignDate).format('YYYY-MM-DD');
+
+        await dispatch(createPlan({
+            recipeId: selectedSession.recipeId._id,
+            date: dateStr,
+            mealType: selectedMealType,
+            servings: 1,
+            batchSessionId: selectedSession._id,
+        }));
+
+        setShowAssignModal(false);
+        dispatch(getAllPlans());
+        dispatch(getBatchSessions());
+    };
 
     return (
         <>
@@ -30,43 +65,8 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                                 <div className="mb-lg-0 mb-2 me-8">
                                     <h1 className="pg-title">Recipe planner</h1>
                                 </div>
-                                <div className="pg-header-action-wrap">
-                                    <InputGroup className="w-300p">
-                                        <span className="input-affix-wrapper">
-                                            <span className="input-prefix">
-                                                <span className="feather-icon">
-                                                    <Calendar />
-                                                </span>
-                                            </span>
-                                            <DateRangePicker
-                                                initialSettings={{
-                                                    timePicker: true,
-                                                    startDate: moment().startOf('hour').toDate(),
-                                                    endDate: moment().startOf('hour').add(32, 'hour').toDate(),
-                                                    locale: {
-                                                        format: 'M/DD hh:mm A',
-                                                    },
-                                                }}
-                                            >
-                                                <Form.Control type="text" name="datetimes" />
-                                            </DateRangePicker>
-                                        </span>
-                                    </InputGroup>
-                                </div>
                             </div>
                         </div>
-                        <Nav variant="tabs" className="nav-light nav-line">
-                            <Nav.Item>
-                                <Nav.Link eventKey="overview" >
-                                    <span className="nav-link-text">Overview</span>
-                                </Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey="demo_nav_1">
-                                    <span className="nav-link-text">Other</span>
-                                </Nav.Link>
-                            </Nav.Item>
-                        </Nav>
                     </div>
                     {/* /Page Header */}
                     {/* Page Body */}
@@ -78,12 +78,15 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                                         <WeeklyRecipePlanner />
                                     </Col>
                                     <Col xxl={3} lg={4} md={5} className="mb-md-4 mb-3">
-                                        <DailyGroceryList />
+                                        <BatchPile onAssignPortion={handleAssignPortion} />
                                     </Col>
                                 </Row>
                                 <Row>
-                                    <Col md={12} className="mb-md-4 mb-3">
+                                    <Col xxl={8} lg={8} md={7} className="mb-md-4 mb-3">
                                         <WeeklyCaloriesChart/>
+                                    </Col>
+                                    <Col xxl={4} lg={4} md={5} className="mb-md-4 mb-3">
+                                        <DailyGroceryList />
                                     </Col>
                                 </Row>
                             </Tab.Pane>
@@ -93,6 +96,45 @@ const Dashboard = ({ navCollapsed, toggleCollapsedNav }) => {
                     </div>
                     {/* /Page Body */}
                 </Tab.Container>
+
+                {/* Assign Portion Modal */}
+                <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Assign Portion</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {selectedSession && (
+                            <>
+                                <p>
+                                    <strong>Recipe:</strong> {selectedSession.recipeId?.title}
+                                </p>
+                                <p>
+                                    <strong>Meal type:</strong> {selectedMealType}
+                                </p>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Select date</Form.Label>
+                                    <DatePicker
+                                        selected={assignDate}
+                                        onChange={(date) => setAssignDate(date)}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={new Date()}
+                                        maxDate={moment().add(28, 'days').toDate()}
+                                        className="form-control"
+                                        inline
+                                    />
+                                </Form.Group>
+                            </>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={handleConfirmAssign}>
+                            Assign to {moment(assignDate).format('D MMM')}
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </Container>
         </>
     )

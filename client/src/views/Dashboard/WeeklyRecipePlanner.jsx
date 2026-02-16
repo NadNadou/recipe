@@ -13,43 +13,44 @@ const WeeklyRecipePlanner = () => {
   const [filter, setFilter] = useState('All');
   const { plans } = useSelector(state => state.planReducer);
 
-  const currentMonth = moment().month();
-  const currentYear = moment().year();
+  // Date range for 4 weeks starting from today
+  const startDate = moment().startOf('day');
+  const endDate = moment().add(27, 'days').endOf('day');
 
   /* ---------------------------------------
-      1. Filter plans of the current month
+      1. Filter plans for the next 4 weeks
   ----------------------------------------*/
-  const currentMonthPlans = useMemo(() => {
+  const fourWeekPlans = useMemo(() => {
     return plans.filter(plan => {
       const d = moment(plan.date);
-      return d.month() === currentMonth && d.year() === currentYear;
+      return d.isBetween(startDate, endDate, 'day', '[]');
     });
-  }, [plans, currentMonth, currentYear]);
+  }, [plans, startDate, endDate]);
 
   /* ---------------------------------------
       2. Analytics (memo)
   ----------------------------------------*/
   const stats = useMemo(() => {
     const uniqueRecipes = new Set(
-      currentMonthPlans.map(p => p.recipeId?._id).filter(Boolean)
+      fourWeekPlans.map(p => p.recipeId?._id).filter(Boolean)
     );
 
-    const babyMeals = currentMonthPlans.filter(
+    const babyMeals = fourWeekPlans.filter(
       p => p.mealType === 'Babyfood'
     ).length;
 
-    const batchMeals = currentMonthPlans.filter(
-      p => !!p.parentPlanId
+    const batchMeals = fourWeekPlans.filter(
+      p => p.isBatchCooked === true
     ).length;
 
-    const totalPrepTime = currentMonthPlans.reduce((acc, p) => {
+    const totalPrepTime = fourWeekPlans.reduce((acc, p) => {
       const prep = p.recipeId?.prepTime || 0;
       const cook = p.recipeId?.cookTime || 0;
       return acc + prep + cook;
     }, 0);
 
     const hours = Math.floor(totalPrepTime / 60);
-    const minutes = totalPrepTime % 60;
+    const minutes = Math.round(totalPrepTime % 60);
 
     return {
       uniqueCount: uniqueRecipes.size,
@@ -58,18 +59,18 @@ const WeeklyRecipePlanner = () => {
       hours,
       minutes
     };
-  }, [currentMonthPlans]);
+  }, [fourWeekPlans]);
 
 
   return (
     <Card className="card-border mb-0 h-100">
       <Card.Header className="card-header-action">
-        <h6>Monthly overview</h6>
+        <h6>4-Week Planner ({startDate.format('D MMM')} - {endDate.format('D MMM')})</h6>
 
         <div className="card-action-wrap">
           {/* Desktop filters */}
           <ButtonGroup className="d-lg-flex d-none" aria-label="Filter">
-            {['All', 'Babyfood', 'Lunch / diner', 'Snack'].map(label => (
+            {['All', 'Meals', 'Lunchbox', 'Babyfood', 'Batch'].map(label => (
               <Button
                 key={label}
                 variant={filter === label ? "primary" : "outline-light"}
@@ -81,17 +82,22 @@ const WeeklyRecipePlanner = () => {
           </ButtonGroup>
 
           {/* Mobile dropdown */}
-          <Form.Select className="d-lg-none d-flex">
-            <option>All</option>
-            <option>Babyfood</option>
-            <option>Lunch / diner</option>
-            <option>Snack</option>
+          <Form.Select
+            className="d-lg-none d-flex"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Meals">Meals</option>
+            <option value="Lunchbox">Lunchbox</option>
+            <option value="Babyfood">Babyfood</option>
+            <option value="Batch">From Batch</option>
           </Form.Select>
         </div>
       </Card.Header>
 
       <Card.Body>
-        <RecipeFullCalendar filter={filter} />
+        <RecipeFullCalendar filter={filter} twoWeekView={true} enableEdit={true} />
 
         <div className="separator-full mt-5" />
 
@@ -114,7 +120,7 @@ const WeeklyRecipePlanner = () => {
           </Col>
 
           <Col xxl={3} sm={6}>
-            <span className="d-block fw-medium fs-7">Meal planned in advance</span>
+            <span className="d-block fw-medium fs-7">From batch cooking</span>
             <span className="fs-4 fw-medium text-dark">{stats.batchMeals}</span>
           </Col>
         </Row>

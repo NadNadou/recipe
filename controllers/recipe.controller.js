@@ -133,10 +133,13 @@ exports.createRecipe = async (req, res) => {
       imageUrl = req.file.path;
     }
 
-    const nutrition = await calculateMacrosFromIngredients(updatedRecipeIngredients);
+    const baseMacros = await calculateMacrosFromIngredients(updatedRecipeIngredients);
 
-    const totalWeightInGrams = nutrition.totalWeightInGrams;
-    delete nutrition.totalWeightInGrams;
+    const totalWeightInGrams = baseMacros.totalWeightInGrams || 0;
+    delete baseMacros.totalWeightInGrams;
+
+    // Calculate full nutrition including per portion and per 100g values
+    const nutrition = calculateNutritionPerPortionAnd100g(baseMacros, totalWeightInGrams, servings);
 
     // ✅ Créer la recette
     const newRecipe = new Recipe({
@@ -227,8 +230,14 @@ exports.updateRecipe = async (req, res) => {
     }
     updatedData.recipeIngredients = finalRecipeIngredients;
 
-    const nutrition = await calculateMacrosFromIngredients(updatedData.recipeIngredients);
+    const baseMacros = await calculateMacrosFromIngredients(updatedData.recipeIngredients);
+    const totalWeightInGrams = baseMacros.totalWeightInGrams || 0;
+    delete baseMacros.totalWeightInGrams;
+
+    // Calculate full nutrition including per portion and per 100g values
+    const nutrition = calculateNutritionPerPortionAnd100g(baseMacros, totalWeightInGrams, updatedData.servings || recipe.servings);
     updatedData.nutrition = nutrition;
+    updatedData.totalWeightInGrams = totalWeightInGrams;
 
     // 5️⃣ Traiter les recettes liées
     if (updatedData.linkedRecipeIds) {
@@ -310,6 +319,36 @@ exports.duplicateRecipe = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur lors de la duplication.' });
+  }
+};
+
+
+// POST /api/recipes/recalculate-nutrition
+// Recalculate nutrition for all existing recipes
+exports.recalculateAllNutrition = async (req, res) => {
+  try {
+    const recipes = await Recipe.find({});
+    let updated = 0;
+
+    for (const recipe of recipes) {
+      const baseMacros = await calculateMacrosFromIngredients(recipe.recipeIngredients);
+      const totalWeightInGrams = baseMacros.totalWeightInGrams || 0;
+      delete baseMacros.totalWeightInGrams;
+
+      const nutrition = calculateNutritionPerPortionAnd100g(baseMacros, totalWeightInGrams, recipe.servings || 1);
+
+      await Recipe.findByIdAndUpdate(recipe._id, {
+        nutrition,
+        totalWeightInGrams
+      });
+
+      updated++;
+    }
+
+    res.status(200).json({ message: `Nutrition recalculated for ${updated} recipes` });
+  } catch (err) {
+    console.error('Error recalculating nutrition:', err);
+    res.status(500).json({ message: 'Error recalculating nutrition', error: err.message });
   }
 };
 
