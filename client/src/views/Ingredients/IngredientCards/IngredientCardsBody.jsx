@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import SimpleBar from 'simplebar-react';
-import { MoreVertical, AlignLeft, Search, ChevronDown, ChevronRight, ArrowUp, ArrowDown } from 'react-feather';
-import { Badge, Card, Col, Dropdown, Form, Row, Table } from 'react-bootstrap';
+import { MoreVertical, AlignLeft, Search, ChevronDown, ChevronRight, ArrowUp, ArrowDown, Database } from 'react-feather';
+import { Alert, Badge, Button, Card, Col, Dropdown, Form, Modal, ProgressBar, Row, Spinner, Table } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import IngredientDetails from './IngredientDetails';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import UpdateIngredient from './../UpdateIngredient';
 import { deleteIngredient, getAllIngredients, getIngredientDetail } from '../../../redux/action/MetaData';
 import { getLabelForNutrient, getColorClassForNutrient } from '../../../utils/nutritionUtils';
+import ingredientsApi from '../../../api/ingredients';
 
 const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused, viewMode }) => {
     const reduxDispatch = useDispatch();
@@ -20,6 +21,14 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
     const [collapsedCategories, setCollapsedCategories] = useState({});
     const [tableSortField, setTableSortField] = useState('name');
     const [tableSortDir, setTableSortDir] = useState('asc');
+
+    // Bulk selection state
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [bulkCategoryModal, setBulkCategoryModal] = useState(false);
+    const [bulkCategory, setBulkCategory] = useState('other');
+    const [bulkLoading, setBulkLoading] = useState(false);
+    const [bulkEnrichModal, setBulkEnrichModal] = useState(false);
+    const [bulkEnrichResults, setBulkEnrichResults] = useState(null);
 
     useEffect(() => {
         reduxDispatch(getAllIngredients());
@@ -69,30 +78,72 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
         }
     };
 
+    // Bulk selection handlers
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredIngredients.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredIngredients.map(i => i._id)));
+        }
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBulkAssignCategory = async () => {
+        setBulkLoading(true);
+        try {
+            await ingredientsApi.bulkUpdateCategory([...selectedIds], bulkCategory);
+            reduxDispatch(getAllIngredients());
+            clearSelection();
+            setBulkCategoryModal(false);
+        } catch (err) {
+            console.error('Bulk category error:', err);
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
+    const handleBulkEnrich = async () => {
+        setBulkLoading(true);
+        setBulkEnrichResults(null);
+        try {
+            const response = await ingredientsApi.bulkEnrich([...selectedIds]);
+            setBulkEnrichResults(response.data.results);
+            reduxDispatch(getAllIngredients());
+            clearSelection();
+        } catch (err) {
+            setBulkEnrichResults({ error: err.response?.data?.message || 'Error' });
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
     // Filter ingredients
     const filteredIngredients = useMemo(() => {
         if (!ingredients) return [];
         let filtered = [...ingredients];
 
-        // Search filter
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(ing => ing.name.toLowerCase().includes(term));
         }
-
-        // Category filter
         if (activeCategory !== 'all') {
             filtered = filtered.filter(ing => (ing.category || 'other') === activeCategory);
         }
-
-        // Missing nutrition filter
         if (showMissingNutrition) {
             filtered = filtered.filter(ing =>
                 !ing.nutritionPer100g || ing.nutritionPer100g.calories === 0
             );
         }
-
-        // Unused filter
         if (showUnused) {
             filtered = filtered.filter(ing =>
                 !ing.usedInRecipes || ing.usedInRecipes.length === 0
@@ -113,7 +164,6 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
             groups[cat].push(ing);
         });
 
-        // Sort ingredients A-Z within each group
         Object.keys(groups).forEach(key => {
             groups[key].sort((a, b) => a.name.localeCompare(b.name));
         });
@@ -177,8 +227,15 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
 
     const renderIngredientCard = (ingredient) => (
         <Col key={ingredient._id}>
-            <Card className="card-border contact-card">
+            <Card className={`card-border contact-card ${selectedIds.has(ingredient._id) ? 'border-primary' : ''}`}>
                 <Card.Body className="text-center">
+                    <div className="position-absolute top-0 start-0 m-2" style={{ zIndex: 1 }}>
+                        <Form.Check
+                            type="checkbox"
+                            checked={selectedIds.has(ingredient._id)}
+                            onChange={() => toggleSelect(ingredient._id)}
+                        />
+                    </div>
                     <div className="card-action-wrap">
                         <Dropdown>
                             <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret">
@@ -201,17 +258,14 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                         </Dropdown>
                     </div>
 
-                    {/* Missing nutrition warning */}
+                    <div className="user-name">{ingredient.name}</div>
+
                     {hasMissingNutrition(ingredient) && (
-                        <Badge bg="warning" text="dark" className="position-absolute top-0 start-0 m-2" style={{ fontSize: '0.65rem' }}>
+                        <Badge bg="warning" text="dark" className="mt-1" style={{ fontSize: '0.65rem' }}>
                             No nutrition
                         </Badge>
                     )}
 
-                    {/* Name */}
-                    <div className="user-name">{ingredient.name}</div>
-
-                    {/* Category badge */}
                     {ingredient.category && ingredient.category !== 'other' && (
                         <Badge
                             pill
@@ -226,7 +280,6 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                         </Badge>
                     )}
 
-                    {/* Nutrition values */}
                     <div className="mt-3 d-flex flex-column align-items-left gap-2">
                         {ingredient.nutritionPer100g && ['calories', 'proteins', 'carbs', 'fats'].map((macro, idx) => (
                             <div key={idx} className="d-flex align-items-center gap-2">
@@ -246,7 +299,6 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                         ))}
                     </div>
 
-                    {/* Recipe count */}
                     <div className="mt-2">
                         <small className="text-muted">
                             {ingredient.usedInRecipes?.length || 0} recipe{(ingredient.usedInRecipes?.length || 0) !== 1 ? 's' : ''}
@@ -275,8 +327,8 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                     <div className="contact-card-view">
                         {/* Toolbar */}
                         <Row className="mb-3 align-items-center">
-                            <Col xs={8}>
-                                <div className="d-flex align-items-center gap-2">
+                            <Col>
+                                <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <div className="position-relative" style={{ maxWidth: 300 }}>
                                         <Form.Control
                                             size="sm"
@@ -288,20 +340,47 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                                         />
                                         <Search size={14} className="position-absolute" style={{ top: '50%', left: 10, transform: 'translateY(-50%)', opacity: 0.4 }} />
                                     </div>
+
+                                    <div className="d-flex align-items-center gap-2 ms-auto">
+                                        {selectedIds.size > 0 && (
+                                            <Badge bg="primary" pill className="me-1">{selectedIds.size} selected</Badge>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant={selectedIds.size > 0 ? 'outline-primary' : 'outline-secondary'}
+                                            onClick={() => setBulkCategoryModal(true)}
+                                            disabled={selectedIds.size === 0}
+                                        >
+                                            Assign category
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant={selectedIds.size > 0 ? 'outline-success' : 'outline-secondary'}
+                                            onClick={() => setBulkEnrichModal(true)}
+                                            disabled={selectedIds.size === 0}
+                                        >
+                                            <Database size={14} className="me-1" />
+                                            Enrich nutrition
+                                        </Button>
+                                        {selectedIds.size > 0 && (
+                                            <Button size="sm" variant="outline-secondary" onClick={clearSelection}>
+                                                Clear
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             </Col>
-                            <Col xs={4} className="text-end">
-                                <small className="text-muted">
-                                    {filteredIngredients.length} ingredient{filteredIngredients.length !== 1 ? 's' : ''}
-                                </small>
-                            </Col>
                         </Row>
+                        <div className="mb-2 text-end">
+                            <small className="text-muted">
+                                {filteredIngredients.length} ingredient{filteredIngredients.length !== 1 ? 's' : ''}
+                            </small>
+                        </div>
 
                         {/* Grid View */}
                         {viewMode === 'grid' && (
                             <>
                                 {activeCategory !== 'all' ? (
-                                    // Single category - flat grid
                                     <Row className="row-cols-xxl-5 row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-1 mb-5 gx-3">
                                         {filteredIngredients
                                             .sort((a, b) => a.name.localeCompare(b.name))
@@ -309,7 +388,6 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                                         }
                                     </Row>
                                 ) : (
-                                    // All categories - grouped view
                                     ingredientCategories.map(cat => {
                                         const catIngredients = groupedIngredients[cat.value];
                                         if (!catIngredients || catIngredients.length === 0) return null;
@@ -348,6 +426,13 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                             <Table striped hover responsive className="table-sm">
                                 <thead>
                                     <tr>
+                                        <th style={{ width: 40 }}>
+                                            <Form.Check
+                                                type="checkbox"
+                                                checked={filteredIngredients.length > 0 && selectedIds.size === filteredIngredients.length}
+                                                onChange={toggleSelectAll}
+                                            />
+                                        </th>
                                         <th style={{ cursor: 'pointer' }} onClick={() => handleTableSort('name')}>
                                             Name <SortIcon field="name" />
                                         </th>
@@ -375,12 +460,21 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                                     {sortedForTable.map(ingredient => {
                                         const catInfo = getCategoryInfo(ingredient.category || 'other');
                                         return (
-                                            <tr
-                                                key={ingredient._id}
-                                                style={{ cursor: 'pointer' }}
-                                                onClick={() => handleShowUpdate(ingredient._id)}
-                                            >
-                                                <td className="fw-semibold">{ingredient.name}</td>
+                                            <tr key={ingredient._id}>
+                                                <td onClick={e => e.stopPropagation()}>
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={selectedIds.has(ingredient._id)}
+                                                        onChange={() => toggleSelect(ingredient._id)}
+                                                    />
+                                                </td>
+                                                <td
+                                                    className="fw-semibold"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => handleShowUpdate(ingredient._id)}
+                                                >
+                                                    {ingredient.name}
+                                                </td>
                                                 <td>
                                                     <span style={{ fontSize: '0.8rem' }}>
                                                         {catInfo.icon} {catInfo.label}
@@ -423,7 +517,6 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                             </Table>
                         )}
 
-                        {/* Empty state */}
                         {filteredIngredients.length === 0 && (
                             <div className="text-center text-muted py-5">
                                 <p>No ingredients found.</p>
@@ -453,6 +546,113 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                     onUpdated={() => reduxDispatch(getAllIngredients())}
                 />
             )}
+
+            {/* Bulk Assign Category Modal */}
+            <Modal show={bulkCategoryModal} onHide={() => !bulkLoading && setBulkCategoryModal(false)} centered>
+                <Modal.Header closeButton={!bulkLoading}>
+                    <Modal.Title>Assign category to {selectedIds.size} ingredient{selectedIds.size > 1 ? 's' : ''}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group>
+                        <Form.Label>Category</Form.Label>
+                        <Form.Select
+                            value={bulkCategory}
+                            onChange={e => setBulkCategory(e.target.value)}
+                            disabled={bulkLoading}
+                        >
+                            {ingredientCategories.map((cat, idx) => (
+                                <option key={idx} value={cat.value}>{cat.icon} {cat.label}</option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setBulkCategoryModal(false)} disabled={bulkLoading}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleBulkAssignCategory} disabled={bulkLoading}>
+                        {bulkLoading ? <Spinner animation="border" size="sm" /> : 'Apply'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Bulk Enrich Nutrition Modal */}
+            <Modal show={bulkEnrichModal} onHide={() => !bulkLoading && setBulkEnrichModal(false)} centered>
+                <Modal.Header closeButton={!bulkLoading}>
+                    <Modal.Title>Enrich nutrition</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {!bulkEnrichResults && !bulkLoading && (
+                        <div className="text-center">
+                            <p>
+                                Enrich <strong>{selectedIds.size}</strong> ingredient{selectedIds.size > 1 ? 's' : ''} with
+                                nutrition data from USDA / OpenFoodFacts.
+                            </p>
+                            <Alert variant="info" className="small">
+                                This may take a few seconds per ingredient.
+                            </Alert>
+                        </div>
+                    )}
+
+                    {bulkLoading && (
+                        <div className="text-center py-4">
+                            <p>Enriching ingredients...</p>
+                            <ProgressBar animated now={100} className="mb-3" />
+                        </div>
+                    )}
+
+                    {bulkEnrichResults && !bulkEnrichResults.error && (
+                        <div>
+                            <Alert variant="success">Done!</Alert>
+                            <div className="d-flex gap-3 mb-3">
+                                <div className="text-center flex-fill">
+                                    <h3 className="text-success mb-0">{bulkEnrichResults.success?.length || 0}</h3>
+                                    <small className="text-muted">Enriched</small>
+                                </div>
+                                <div className="text-center flex-fill">
+                                    <h3 className="text-warning mb-0">{bulkEnrichResults.failed?.length || 0}</h3>
+                                    <small className="text-muted">Not found</small>
+                                </div>
+                            </div>
+                            {bulkEnrichResults.failed?.length > 0 && (
+                                <details className="mt-2">
+                                    <summary className="text-muted small">Show failed</summary>
+                                    <ul className="small mt-2">
+                                        {bulkEnrichResults.failed.map((item, idx) => (
+                                            <li key={idx}>{item.name}</li>
+                                        ))}
+                                    </ul>
+                                </details>
+                            )}
+                        </div>
+                    )}
+
+                    {bulkEnrichResults?.error && (
+                        <Alert variant="danger">{bulkEnrichResults.error}</Alert>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    {!bulkEnrichResults && !bulkLoading && (
+                        <>
+                            <Button variant="secondary" onClick={() => setBulkEnrichModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button variant="primary" onClick={handleBulkEnrich}>
+                                <Database size={16} className="me-1" />
+                                Start enrichment
+                            </Button>
+                        </>
+                    )}
+                    {bulkEnrichResults && !bulkLoading && (
+                        <Button variant="primary" onClick={() => {
+                            setBulkEnrichModal(false);
+                            setBulkEnrichResults(null);
+                        }}>
+                            Close
+                        </Button>
+                    )}
+                </Modal.Footer>
+            </Modal>
         </>
     )
 }

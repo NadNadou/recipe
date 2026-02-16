@@ -395,6 +395,82 @@ exports.searchNutritionMultiple = async (req, res) => {
   }
 };
 
+// PUT /api/ingredients/bulk-update-category
+exports.bulkUpdateCategory = async (req, res) => {
+  try {
+    const { ingredientIds, category } = req.body;
+
+    if (!ingredientIds || !Array.isArray(ingredientIds) || ingredientIds.length === 0) {
+      return res.status(400).json({ message: "ingredientIds est requis (array non vide)" });
+    }
+    if (!category) {
+      return res.status(400).json({ message: "category est requis" });
+    }
+
+    const result = await Ingredient.updateMany(
+      { _id: { $in: ingredientIds } },
+      { $set: { category } }
+    );
+
+    res.status(200).json({
+      message: `${result.modifiedCount} ingredient(s) updated`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// POST /api/ingredients/bulk-enrich - Enrich selected ingredients with nutrition data
+exports.bulkEnrich = async (req, res) => {
+  try {
+    const { ingredientIds } = req.body;
+
+    if (!ingredientIds || !Array.isArray(ingredientIds) || ingredientIds.length === 0) {
+      return res.status(400).json({ message: "ingredientIds est requis (array non vide)" });
+    }
+
+    const ingredients = await Ingredient.find({ _id: { $in: ingredientIds } });
+
+    const results = { success: [], failed: [] };
+
+    for (const ingredient of ingredients) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const nutritionData = await fetchNutritionFromOpenFoodFacts(ingredient.name);
+
+      if (!nutritionData) {
+        results.failed.push({ id: ingredient._id, name: ingredient.name });
+        continue;
+      }
+
+      ingredient.nutritionPer100g = {
+        calories: nutritionData.calories,
+        proteins: nutritionData.proteins,
+        carbs: nutritionData.carbs,
+        fats: nutritionData.fats
+      };
+
+      await ingredient.save();
+      await recalculateRecipesForIngredient(ingredient._id);
+
+      results.success.push({
+        id: ingredient._id,
+        name: ingredient.name,
+        nutritionPer100g: ingredient.nutritionPer100g,
+        matchedProduct: nutritionData.productName
+      });
+    }
+
+    res.status(200).json({
+      message: `${results.success.length} enriched, ${results.failed.length} failed`,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
 // Helper function to recalculate nutrition for recipes using a specific ingredient
 async function recalculateRecipesForIngredient(ingredientId) {
   const recipes = await Recipe.find({ 'recipeIngredients.ingredientId': ingredientId });

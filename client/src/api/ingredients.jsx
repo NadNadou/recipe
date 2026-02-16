@@ -46,6 +46,14 @@ const searchNutrition = (searchTerm) =>
 const searchNutritionMultiple = (searchTerm) =>
   API.post('/search-nutrition-multiple', { searchTerm }, getAuthHeader());
 
+// Bulk: update category for multiple ingredients
+const bulkUpdateCategory = (ingredientIds, category) =>
+  API.put('/bulk-update-category', { ingredientIds, category }, getAuthHeader());
+
+// Bulk: enrich nutrition for selected ingredients
+const bulkEnrich = (ingredientIds) =>
+  API.post('/bulk-enrich', { ingredientIds }, getAuthHeader());
+
 export default {
   getIngredients,
   getIngredient,
@@ -56,4 +64,6 @@ export default {
   enrichAllIngredients,
   searchNutrition,
   searchNutritionMultiple,
+  bulkUpdateCategory,
+  bulkEnrich,
 };
