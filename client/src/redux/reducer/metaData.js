@@ -161,6 +161,20 @@ import {
       { value: 'no-heat', label: 'No Cooking', icon: '🥗', color: '#96CEB4' },
       { value: 'robot', label: 'Blender/Processor', icon: '🔪', color: '#FFB347' },
     ],
+    ingredientCategories: [
+      { value: 'fruits-vegetables', label: 'Fruits & Vegetables', icon: '🥕', color: '#66BB6A' },
+      { value: 'meat-poultry', label: 'Meat & Poultry', icon: '🥩', color: '#EF5350' },
+      { value: 'fish-seafood', label: 'Fish & Seafood', icon: '🐟', color: '#42A5F5' },
+      { value: 'dairy-eggs', label: 'Dairy & Eggs', icon: '🥚', color: '#FFA726' },
+      { value: 'grains-starches', label: 'Grains & Starches', icon: '🌾', color: '#D4A574' },
+      { value: 'legumes', label: 'Legumes', icon: '🫘', color: '#8D6E63' },
+      { value: 'herbs-spices', label: 'Herbs & Spices', icon: '🌿', color: '#26A69A' },
+      { value: 'oils-fats', label: 'Oils & Fats', icon: '🫒', color: '#FFCA28' },
+      { value: 'condiments-sauces', label: 'Condiments & Sauces', icon: '🧂', color: '#AB47BC' },
+      { value: 'nuts-seeds', label: 'Nuts & Seeds', icon: '🥜', color: '#A1887F' },
+      { value: 'beverages', label: 'Beverages', icon: '🥤', color: '#29B6F6' },
+      { value: 'other', label: 'Other', icon: '📦', color: '#78909C' },
+    ],
   };
   
   const metaDataReducer = (state = initialState, action) => {

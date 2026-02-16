@@ -1,202 +1,157 @@
-import React, { useState } from 'react';
-import { Button, Nav } from 'react-bootstrap';
-import { Archive, Book, Download, Edit, Inbox, Plus, Printer, Settings, Star, Trash2, Upload } from 'react-feather';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Button, Nav, Form, Badge } from 'react-bootstrap';
+import { Plus, AlertTriangle, Package } from 'react-feather';
 import SimpleBar from 'simplebar-react';
-import HkBadge from '../../components/@hk-badge/@hk-badge';
-import HkTooltip from '../../components/@hk-tooltip/HkTooltip';
-// import AddLabel from './AddLabel';
-// import AddTag from './AddTag';
+import { useSelector } from 'react-redux';
 import CreateNewIngredient from './CreateNewIngredient';
 
-
-const IngredientAppSidebar = () => {
-    const [addLabels, setAddLabels] = useState(false);
-    const [addTags, setAddTags] = useState(false);
+const IngredientAppSidebar = ({
+    activeCategory,
+    onCategoryChange,
+    showMissingNutrition,
+    onToggleMissingNutrition,
+    showUnused,
+    onToggleUnused,
+    ingredients = [],
+}) => {
     const [addNewContact, setAddNewContact] = useState(false);
+    const ingredientCategories = useSelector(state => state.metadataReducer.ingredientCategories);
+
+    const stats = useMemo(() => {
+        const total = ingredients.length;
+        const missingNutrition = ingredients.filter(
+            ing => !ing.nutritionPer100g || ing.nutritionPer100g.calories === 0
+        ).length;
+        const unused = ingredients.filter(
+            ing => !ing.usedInRecipes || ing.usedInRecipes.length === 0
+        ).length;
+
+        const byCategory = {};
+        ingredientCategories.forEach(cat => { byCategory[cat.value] = 0; });
+        ingredients.forEach(ing => {
+            const cat = ing.category || 'other';
+            byCategory[cat] = (byCategory[cat] || 0) + 1;
+        });
+
+        return { total, missingNutrition, unused, byCategory };
+    }, [ingredients, ingredientCategories]);
 
     return (
         <>
             <Nav className="contactapp-sidebar">
                 <SimpleBar className="nicescroll-bar">
                     <div className="menu-content-wrap">
-                        <Button variant="primary" className="btn-rounded btn-block mb-4" onClick={() => setAddNewContact(!addNewContact)}>
+                        <Button
+                            variant="primary"
+                            className="btn-rounded btn-block mb-4"
+                            onClick={() => setAddNewContact(true)}
+                        >
                             Add new ingredient
                         </Button>
+
+                        {/* Categories */}
                         <div className="menu-group">
+                            <div className="title-sm text-primary mb-2">Categories</div>
                             <Nav className="nav-light navbar-nav flex-column">
                                 <Nav.Item>
-                                    <Nav.Link active >
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Inbox />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">All Ingredient</span>
+                                    <Nav.Link
+                                        active={activeCategory === 'all'}
+                                        onClick={() => onCategoryChange('all')}
+                                        className="d-flex justify-content-between align-items-center"
+                                    >
+                                        <span className="nav-link-text">All</span>
+                                        <Badge bg="light" text="dark" pill className="ms-auto">
+                                            {stats.total}
+                                        </Badge>
                                     </Nav.Link>
                                 </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Star />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Important</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Archive />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Archive</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Edit />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Pending</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Trash2 />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Deleted</span>
-                                    </Nav.Link>
-                                </Nav.Item>
+                                {ingredientCategories.map(cat => (
+                                    stats.byCategory[cat.value] > 0 && (
+                                        <Nav.Item key={cat.value}>
+                                            <Nav.Link
+                                                active={activeCategory === cat.value}
+                                                onClick={() => onCategoryChange(cat.value)}
+                                                className="d-flex justify-content-between align-items-center"
+                                            >
+                                                <span className="nav-link-text">
+                                                    {cat.icon} {cat.label}
+                                                </span>
+                                                <Badge bg="light" text="dark" pill className="ms-auto">
+                                                    {stats.byCategory[cat.value]}
+                                                </Badge>
+                                            </Nav.Link>
+                                        </Nav.Item>
+                                    )
+                                ))}
                             </Nav>
                         </div>
+
                         <div className="separator separator-light" />
+
+                        {/* Quick Filters */}
                         <div className="menu-group">
-                            <Nav className="nav-light navbar-nav flex-column">
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Upload />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Export</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Download />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Import</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link>
-                                        <span className="nav-icon-wrap">
-                                            <span className="feather-icon">
-                                                <Printer />
-                                            </span>
-                                        </span>
-                                        <span className="nav-link-text">Print</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                            </Nav>
-                        </div>
-                        <div className="separator separator-light" />
-                        <div className="d-flex align-items-center justify-content-between mb-2">
-                            <div className="title-sm text-primary mb-0">Labels</div>
-                            <Button variant="light" size="xs" className="btn-icon btn-rounded" 
-                            // onClick={() => setAddLabels(!addLabels)}
-                             >
-                                <HkTooltip placement="top" title="Add Label">
-                                    <span className="feather-icon">
-                                        <Plus />
+                            <div className="title-sm text-primary mb-2">Quick Filters</div>
+                            <Form.Check
+                                type="switch"
+                                id="filter-missing-nutrition"
+                                label={
+                                    <span className="d-flex align-items-center gap-1">
+                                        <AlertTriangle size={14} className="text-warning" />
+                                        Missing nutrition
+                                        <Badge bg="warning" text="dark" pill className="ms-auto">
+                                            {stats.missingNutrition}
+                                        </Badge>
                                     </span>
-                                </HkTooltip>
-                            </Button>
-                        </div>
-                        <div className="menu-group">
-                            <Nav className="nav-light navbar-nav flex-column">
-                                <Nav.Item>
-                                    <Nav.Link className="link-badge-right" href="#">
-                                        <span className="nav-link-text">Design</span>
-                                        <span className="badge badge-pill badge-sm badge-soft-primary ms-auto">136</span>
-                                    </Nav.Link>
-                                </Nav.Item>
-                                
-                            </Nav>
-                        </div>
-                        <div className="separator separator-light" />
-                        <div className="d-flex align-items-center justify-content-between mb-4">
-                            <div className="title-sm text-primary mb-0">Tags</div>
-                            <Button variant="light" size="xs" className="btn-icon btn-rounded" onClick={() => setAddTags(!addTags)} >
-                                <HkTooltip placement="top" title="Add Tag">
-                                    <span className="feather-icon">
-                                        <Plus />
+                                }
+                                checked={showMissingNutrition}
+                                onChange={onToggleMissingNutrition}
+                                className="mb-2"
+                            />
+                            <Form.Check
+                                type="switch"
+                                id="filter-unused"
+                                label={
+                                    <span className="d-flex align-items-center gap-1">
+                                        <Package size={14} className="text-muted" />
+                                        Unused
+                                        <Badge bg="secondary" pill className="ms-auto">
+                                            {stats.unused}
+                                        </Badge>
                                     </span>
-                                </HkTooltip>
-                            </Button>
+                                }
+                                checked={showUnused}
+                                onChange={onToggleUnused}
+                                className="mb-2"
+                            />
                         </div>
-                        <div className="tag-cloud">
-                            <HkBadge as={Link} to="#" bg="white" className="badge-light" outline text="dark" >Collaboration</HkBadge>
+
+                        <div className="separator separator-light" />
+
+                        {/* Stats */}
+                        <div className="menu-group">
+                            <div className="title-sm text-primary mb-2">Stats</div>
+                            <div className="d-flex flex-column gap-2 small text-muted">
+                                <div className="d-flex justify-content-between">
+                                    <span>Total ingredients</span>
+                                    <strong>{stats.total}</strong>
+                                </div>
+                                <div className="d-flex justify-content-between">
+                                    <span>Missing nutrition</span>
+                                    <strong className={stats.missingNutrition > 0 ? 'text-warning' : 'text-success'}>
+                                        {stats.missingNutrition}
+                                    </strong>
+                                </div>
+                                <div className="d-flex justify-content-between">
+                                    <span>Unused</span>
+                                    <strong>{stats.unused}</strong>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </SimpleBar>
-                {/*Sidebar Fixnav*/}
-                <div className="contactapp-fixednav">
-                    <div className="hk-toolbar">
-                        <Nav className="nav-light">
-                            <Nav.Item className="nav-link">
-                                <Button variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover">
-                                    <HkTooltip id="tooltip2" placement="top" title="Settings" >
-                                        <span className="icon">
-                                            <span className="feather-icon">
-                                                <Settings />
-                                            </span>
-                                        </span>
-                                    </HkTooltip>
-                                </Button>
-                            </Nav.Item>
-                            <Nav.Item className="nav-link">
-                                <Button variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover">
-                                    <HkTooltip id="tooltip3" placement="top" title="Archive" >
-                                        <span className="icon">
-                                            <span className="feather-icon">
-                                                <Archive />
-                                            </span>
-                                        </span>
-                                    </HkTooltip>
-                                </Button>
-                            </Nav.Item>
-                            <Nav.Item className="nav-link">
-                                <Button variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover">
-                                    <HkTooltip id="tooltip2" placement="top" title="Help" >
-                                        <span className="icon">
-                                            <span className="feather-icon">
-                                                <Book />
-                                            </span>
-                                        </span>
-                                    </HkTooltip>
-                                </Button>
-                            </Nav.Item>
-                        </Nav>
-                    </div>
-                </div>
-                {/*/ Sidebar Fixnav*/}
             </Nav>
-            {/* Create New Contact */}
-            <CreateNewIngredient show={addNewContact} close={() => setAddNewContact(!addNewContact)} />
-        
+
+            <CreateNewIngredient show={addNewContact} close={() => setAddNewContact(false)} />
         </>
     )
 }

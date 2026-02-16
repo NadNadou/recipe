@@ -10,6 +10,16 @@ const ingredientSchema = new Schema(
       unique: true,
       trim: true
     },
+    category: {
+      type: String,
+      enum: [
+        'fruits-vegetables', 'meat-poultry', 'fish-seafood',
+        'dairy-eggs', 'grains-starches', 'legumes',
+        'herbs-spices', 'oils-fats', 'condiments-sauces',
+        'nuts-seeds', 'beverages', 'other'
+      ],
+      default: 'other'
+    },
     defaultUnit: {
       type: String,
       default: 'g'

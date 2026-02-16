@@ -10,9 +10,11 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
 
   const cookingUnits = useSelector(state => state.metadataReducer.cookingUnits);
   const nutritionalProperties = useSelector(state => state.metadataReducer.nutritionalProperties);
+  const ingredientCategories = useSelector(state => state.metadataReducer.ingredientCategories);
 
   const [ingredientData, setIngredientData] = useState({
     name: '',
+    category: 'other',
     defaultUnit: 'g',
     units: ['g'],
     unitConversions: { g: 1 },
@@ -30,6 +32,7 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
     if (ingredient) {
       setIngredientData({
         name: ingredient.name || '',
+        category: ingredient.category || 'other',
         defaultUnit: ingredient.defaultUnit || 'g',
         units: ingredient.units || ['g'],
         unitConversions: ingredient.unitConversions || { g: 1 },
@@ -119,6 +122,18 @@ const UpdateIngredient = ({ show, close, ingredient }) => {
               defaultValue={ingredientData.name}
               placeholder={ingredientData.name}
             />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Category</Form.Label>
+            <Form.Select
+              value={ingredientData.category}
+              onChange={e => handleChange('category', e.target.value)}
+            >
+              {ingredientCategories.map((cat, index) => (
+                <option key={index} value={cat.value}>{cat.icon} {cat.label}</option>
+              ))}
+            </Form.Select>
           </Form.Group>
 
           <Form.Group className="mb-3">

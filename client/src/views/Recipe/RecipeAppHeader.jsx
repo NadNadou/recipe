@@ -3,17 +3,13 @@ import { Button, Dropdown } from 'react-bootstrap';
 import classNames from 'classnames';
 import { Archive, ChevronDown, ChevronUp, Grid, List, MoreVertical, RefreshCw, Plus, Star, User } from 'react-feather';
 import { connect } from 'react-redux';
-import { NavLink, useRouteMatch } from 'react-router-dom';
 import { toggleTopNav } from '../../redux/action/Theme';
 import HkTooltip from '../../components/@hk-tooltip/HkTooltip';
 
 import CreateNewRecipe from './CreateNewRecipe';
-import { useHistory } from 'react-router-dom';
 
 
-const RecipeAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, show }) => {
-    const history = useHistory();
-    const contactListRoute = useRouteMatch("/apps/contacts/contact-list");
+const RecipeAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, show, viewMode, onViewModeChange }) => {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -54,20 +50,23 @@ const RecipeAppHeader = ({ topNavCollapsed, toggleTopNav, toggleSidebar, show })
                     <Dropdown.Toggle as="a" href="#" className="btn btn-icon btn-flush-dark flush-soft-hover no-caret active">
                         <span className="icon">
                             <span className="feather-icon">
-                                {contactListRoute ? <List /> : <Grid />}
+                                {viewMode === 'table' ? <List /> : <Grid />}
                             </span>
                         </span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu align="end">
-                        <Dropdown.Item as={NavLink} to="contact-list" activeClassName="active" ><span className="feather-icon dropdown-icon">
-                            <List />
-                        </span>
-                            <span>List View</span>
+                        <Dropdown.Item
+                            active={viewMode === 'table'}
+                            onClick={() => onViewModeChange && onViewModeChange('table')}
+                        >
+                            <span className="feather-icon dropdown-icon"><List /></span>
+                            <span>Table View</span>
                         </Dropdown.Item>
-                        <Dropdown.Item as={NavLink} to="contact-cards" activeClassName="active">
-                            <span className="feather-icon dropdown-icon">
-                                <Grid />
-                            </span>
+                        <Dropdown.Item
+                            active={viewMode === 'grid'}
+                            onClick={() => onViewModeChange && onViewModeChange('grid')}
+                        >
+                            <span className="feather-icon dropdown-icon"><Grid /></span>
                             <span>Grid View</span>
                         </Dropdown.Item>
                     </Dropdown.Menu>
