@@ -323,6 +323,41 @@ exports.duplicateRecipe = async (req, res) => {
 };
 
 
+// PUT /api/recipes/bulk-update-appliances
+exports.bulkUpdateAppliances = async (req, res) => {
+  try {
+    const { recipeIds, appliances, mode = 'add' } = req.body;
+
+    if (!recipeIds || !Array.isArray(recipeIds) || recipeIds.length === 0) {
+      return res.status(400).json({ message: "recipeIds is required (non-empty array)" });
+    }
+    if (!appliances || !Array.isArray(appliances)) {
+      return res.status(400).json({ message: "appliances is required (array)" });
+    }
+
+    let result;
+    if (mode === 'replace') {
+      result = await Recipe.updateMany(
+        { _id: { $in: recipeIds } },
+        { $set: { cookingAppliances: appliances } }
+      );
+    } else {
+      // 'add' mode: add appliances without duplicates
+      result = await Recipe.updateMany(
+        { _id: { $in: recipeIds } },
+        { $addToSet: { cookingAppliances: { $each: appliances } } }
+      );
+    }
+
+    res.status(200).json({
+      message: `${result.modifiedCount} recipe(s) updated`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // POST /api/recipes/recalculate-nutrition
 // Recalculate nutrition for all existing recipes
 exports.recalculateAllNutrition = async (req, res) => {

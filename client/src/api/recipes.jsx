@@ -32,6 +32,10 @@ const deleteRecipe = (id) => API.delete(`/${id}`, getAuthHeader());
 // Dupliquer une recette
 const duplicateRecipe = (id) => API.post(`/${id}/duplicate`,null, getAuthHeader());
 
+// Bulk: update appliances for multiple recipes
+const bulkUpdateAppliances = (recipeIds, appliances, mode = 'add') =>
+  API.put('/bulk-update-appliances', { recipeIds, appliances, mode }, getAuthHeader());
+
 export default {
   getRecipes,
   getRecipe,
@@ -39,4 +43,5 @@ export default {
   updateRecipe,
   duplicateRecipe,
   deleteRecipe,
+  bulkUpdateAppliances,
 };

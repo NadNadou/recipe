@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import SimpleBar from 'simplebar-react';
 import { MoreVertical, Clock, AlignLeft, Search, ArrowUp, ArrowDown } from 'react-feather';
-import { Badge, Card, Col, Dropdown, Form, Row, Table } from 'react-bootstrap';
+import { Badge, Button, Card, Col, Dropdown, Form, Modal, Row, Spinner, Table } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import RecipeDetails from './RecipeDetails';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import UpdateRecipeModal from '../EditRecipe/UpdateRecipeModal';
 import { getAllRecipes, getRecipeDetail, deleteRecipe, duplicateRecipe } from '../../../redux/action/Recipes';
+import recipesApi from '../../../api/recipes';
 
 import avatar2 from '../../../assets/img/avatar2.jpg';
 
@@ -23,6 +24,13 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
     const [selectedRecipeId, setSelectedRecipeId] = useState(null);
     const [showDetails, setShowDetails] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
+
+    // Bulk selection state
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [bulkApplianceModal, setBulkApplianceModal] = useState(false);
+    const [bulkAppliances, setBulkAppliances] = useState([]);
+    const [bulkMode, setBulkMode] = useState('add');
+    const [bulkLoading, setBulkLoading] = useState(false);
 
     useEffect(() => {
         reduxDispatch(getAllRecipes());
@@ -50,6 +58,47 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
 
     const handleDuplicate = (id) => {
         reduxDispatch(duplicateRecipe(id));
+    };
+
+    // Bulk selection handlers
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredRecipes.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredRecipes.map(r => r._id)));
+        }
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBulkAssignAppliances = async () => {
+        setBulkLoading(true);
+        try {
+            await recipesApi.bulkUpdateAppliances([...selectedIds], bulkAppliances, bulkMode);
+            reduxDispatch(getAllRecipes());
+            clearSelection();
+            setBulkApplianceModal(false);
+            setBulkAppliances([]);
+        } catch (err) {
+            console.error('Bulk appliance error:', err);
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
+    const toggleBulkAppliance = (value) => {
+        setBulkAppliances(prev =>
+            prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+        );
     };
 
     const handleTableSort = (field) => {
@@ -155,8 +204,15 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
 
     const renderRecipeCard = (recipe) => (
         <Col key={recipe._id}>
-            <Card className="card-border contact-card d-flex flex-column" style={{ height: '100%' }}>
+            <Card className={`card-border contact-card d-flex flex-column ${selectedIds.has(recipe._id) ? 'border-primary' : ''}`} style={{ height: '100%' }}>
                 <Card.Body className="text-center d-flex flex-column" style={{ flex: 1 }}>
+                    <div className="position-absolute top-0 start-0 m-2" style={{ zIndex: 1 }}>
+                        <Form.Check
+                            type="checkbox"
+                            checked={selectedIds.has(recipe._id)}
+                            onChange={() => toggleSelect(recipe._id)}
+                        />
+                    </div>
                     <div className="card-action-wrap">
                         <Dropdown>
                             <Dropdown.Toggle variant="flush-dark" className="btn-icon btn-rounded flush-soft-hover no-caret">
@@ -177,13 +233,6 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                             </Dropdown.Menu>
                         </Dropdown>
                     </div>
-
-                    {/* Missing nutrition warning */}
-                    {hasMissingNutrition(recipe) && (
-                        <Badge bg="warning" text="dark" className="position-absolute top-0 start-0 m-2" style={{ fontSize: '0.65rem' }}>
-                            No nutrition
-                        </Badge>
-                    )}
 
                     {/* Image */}
                     <div className="avatar avatar-xl avatar-rounded mx-auto">
@@ -275,8 +324,8 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                     <div className="contact-card-view">
                         {/* Toolbar */}
                         <Row className="mb-3 align-items-center">
-                            <Col xs={8}>
-                                <div className="d-flex align-items-center gap-2">
+                            <Col>
+                                <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <div className="position-relative" style={{ maxWidth: 300 }}>
                                         <Form.Control
                                             size="sm"
@@ -288,14 +337,33 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                                         />
                                         <Search size={14} className="position-absolute" style={{ top: '50%', left: 10, transform: 'translateY(-50%)', opacity: 0.4 }} />
                                     </div>
+
+                                    <div className="d-flex align-items-center gap-2 ms-auto">
+                                        {selectedIds.size > 0 && (
+                                            <Badge bg="primary" pill className="me-1">{selectedIds.size} selected</Badge>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant={selectedIds.size > 0 ? 'outline-primary' : 'outline-secondary'}
+                                            onClick={() => setBulkApplianceModal(true)}
+                                            disabled={selectedIds.size === 0}
+                                        >
+                                            Assign appliances
+                                        </Button>
+                                        {selectedIds.size > 0 && (
+                                            <Button size="sm" variant="outline-secondary" onClick={clearSelection}>
+                                                Clear
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             </Col>
-                            <Col xs={4} className="text-end">
-                                <small className="text-muted">
-                                    {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''}
-                                </small>
-                            </Col>
                         </Row>
+                        <div className="mb-2 text-end">
+                            <small className="text-muted">
+                                {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''}
+                            </small>
+                        </div>
 
                         {/* Grid View */}
                         {viewMode === 'grid' && (
@@ -309,6 +377,13 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                             <Table striped hover responsive className="table-sm">
                                 <thead>
                                     <tr>
+                                        <th style={{ width: 40 }}>
+                                            <Form.Check
+                                                type="checkbox"
+                                                checked={filteredRecipes.length > 0 && selectedIds.size === filteredRecipes.length}
+                                                onChange={toggleSelectAll}
+                                            />
+                                        </th>
                                         <th style={{ cursor: 'pointer' }} onClick={() => handleTableSort('title')}>
                                             Title <SortIcon field="title" />
                                         </th>
@@ -335,6 +410,13 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                                             style={{ cursor: 'pointer' }}
                                             onClick={() => handleShowUpdate(recipe._id)}
                                         >
+                                            <td onClick={e => e.stopPropagation()}>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(recipe._id)}
+                                                    onChange={() => toggleSelect(recipe._id)}
+                                                />
+                                            </td>
                                             <td>
                                                 <div className="d-flex align-items-center gap-2">
                                                     <img
@@ -430,6 +512,52 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                     onUpdated={() => reduxDispatch(getAllRecipes())}
                 />
             )}
+
+            {/* Bulk Assign Appliances Modal */}
+            <Modal show={bulkApplianceModal} onHide={() => !bulkLoading && setBulkApplianceModal(false)} centered>
+                <Modal.Header closeButton={!bulkLoading}>
+                    <Modal.Title>Assign appliances to {selectedIds.size} recipe{selectedIds.size > 1 ? 's' : ''}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Mode</Form.Label>
+                        <Form.Select value={bulkMode} onChange={e => setBulkMode(e.target.value)} disabled={bulkLoading}>
+                            <option value="add">Add to existing</option>
+                            <option value="replace">Replace all</option>
+                        </Form.Select>
+                        <Form.Text className="text-muted">
+                            {bulkMode === 'add' ? 'Selected appliances will be added without removing existing ones.' : 'All existing appliances will be replaced.'}
+                        </Form.Text>
+                    </Form.Group>
+
+                    <Form.Label>Appliances</Form.Label>
+                    <div className="d-flex flex-wrap gap-2">
+                        {cookingAppliances.map(app => (
+                            <Button
+                                key={app.value}
+                                size="sm"
+                                variant={bulkAppliances.includes(app.value) ? 'primary' : 'outline-secondary'}
+                                onClick={() => toggleBulkAppliance(app.value)}
+                                disabled={bulkLoading}
+                            >
+                                {app.icon} {app.label}
+                            </Button>
+                        ))}
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setBulkApplianceModal(false)} disabled={bulkLoading}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleBulkAssignAppliances}
+                        disabled={bulkLoading || bulkAppliances.length === 0}
+                    >
+                        {bulkLoading ? <Spinner animation="border" size="sm" /> : 'Apply'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     )
 }
