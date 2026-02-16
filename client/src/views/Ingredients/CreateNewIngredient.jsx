@@ -1,7 +1,8 @@
-import React, { useState,useEffect } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal, Button, Form, Row, Col, Spinner } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { createIngredient } from '../../redux/action/MetaData';
+import ingredientsApi from '../../api/ingredients';
 
 const CreateNewIngredient = ({ show, close }) => {
   const dispatch = useDispatch();
@@ -24,6 +25,46 @@ const CreateNewIngredient = ({ show, close }) => {
     },
     nutritionalProperties: [],
   });
+
+  const [nutritionLoading, setNutritionLoading] = useState(false);
+  const [nutritionSource, setNutritionSource] = useState(null);
+  const debounceRef = useRef(null);
+
+  // Auto-fetch nutrition when name changes (debounced)
+  useEffect(() => {
+    const name = ingredientData.name.trim();
+    if (name.length < 3) {
+      setNutritionSource(null);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      setNutritionLoading(true);
+      setNutritionSource(null);
+      try {
+        const res = await ingredientsApi.searchNutrition(name);
+        const data = res.data;
+        setIngredientData(prev => ({
+          ...prev,
+          nutritionPer100g: {
+            calories: data.nutritionPer100g.calories,
+            proteins: data.nutritionPer100g.proteins,
+            carbs: data.nutritionPer100g.carbs,
+            fats: data.nutritionPer100g.fats,
+          }
+        }));
+        setNutritionSource(data.matchedProduct || data.source);
+      } catch {
+        setNutritionSource(null);
+      } finally {
+        setNutritionLoading(false);
+      }
+    }, 800);
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [ingredientData.name]);
 
   const handleChange = (field, value) => {
     setIngredientData(prev => ({ ...prev, [field]: value }));
@@ -58,6 +99,7 @@ const CreateNewIngredient = ({ show, close }) => {
       nutritionPer100g: { calories: 0, proteins: 0, carbs: 0, fats: 0 },
       nutritionalProperties: [],
     });
+    setNutritionSource(null);
   };
 
   return (
@@ -98,7 +140,13 @@ const CreateNewIngredient = ({ show, close }) => {
             </Form.Select>
           </Form.Group>
 
-          <h6>Macronutriments (per 100g)</h6>
+          <div className="d-flex align-items-center gap-2 mb-1">
+            <h6 className="mb-0">Macronutrients (per 100g)</h6>
+            {nutritionLoading && <Spinner animation="border" size="sm" variant="secondary" />}
+            {nutritionSource && !nutritionLoading && (
+              <small className="text-success">auto-filled from {nutritionSource}</small>
+            )}
+          </div>
           <Row>
             <Col>
               <Form.Group>
