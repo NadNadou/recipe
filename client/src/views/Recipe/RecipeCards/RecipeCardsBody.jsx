@@ -191,7 +191,21 @@ const RecipeCardsBody = ({ activeTag, activeAppliance, showBatchOnly, showMissin
                     </div>
 
                     {/* Title */}
-                    <div className="user-name">{recipe.title}</div>
+                    <div
+                        className="user-name"
+                        title={recipe.title}
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: '2.6em',
+                            lineHeight: '1.3em',
+                        }}
+                    >
+                        {recipe.title}
+                    </div>
 
                     {/* Badges row: batch + tags + appliances - fixed height zone */}
                     <div style={{ minHeight: 48 }} className="d-flex flex-column align-items-center justify-content-center mt-1">

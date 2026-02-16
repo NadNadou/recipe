@@ -258,7 +258,21 @@ const IngredientCardsBody = ({ activeCategory, showMissingNutrition, showUnused,
                         </Dropdown>
                     </div>
 
-                    <div className="user-name">{ingredient.name}</div>
+                    <div
+                        className="user-name"
+                        title={ingredient.name}
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: '2.6em',
+                            lineHeight: '1.3em',
+                        }}
+                    >
+                        {ingredient.name}
+                    </div>
 
                     {hasMissingNutrition(ingredient) && (
                         <Badge bg="warning" text="dark" className="mt-1" style={{ fontSize: '0.65rem' }}>
